@@ -1,0 +1,91 @@
+{
+  "users": [
+    {
+      "name": "Lucas Dev",
+      "targetRole": "Développeur Fullstack",
+      "location": "Paris",
+      "maxDistanceKm": 20,
+      "skills": [
+        "React",
+        "Node.js",
+        "TypeScript",
+        "Tailwind"
+      ],
+      "softSkills": [
+        "Curieux",
+        "Autonome"
+      ],
+      "experienceLevel": "Junior",
+      "resumeText": "Étudiant en 3ème année d'école d'ingénieur. Passionné par le web. Projets perso : Clone de Netflix en React, API REST avec Express."
+    }
+  ],
+  "matches": [
+    {
+      "userId": "Lucas Dev",
+      "jobId": "job_001",
+      "timestamp": "2025-11-24T17:12:34.376Z",
+      "result": {
+        "score": 95,
+        "reason": "Match parfait sur la stack et le titre.",
+        "isMatch": true,
+        "generatedContent": {
+          "coverLetter": "Madame, Monsieur...",
+          "linkedinMessage": "Bonjour...",
+          "resumeSuggestions": [
+            "Ajouter Docker"
+          ]
+        }
+      },
+      "jobDetails": {
+        "id": "job_001",
+        "title": "Alternance Développeur Fullstack JS",
+        "company": "TechCorp",
+        "location": "Paris",
+        "description": "Nous cherchons un alternant passionné par React et Node.js. Stack: Next.js, TypeScript, Supabase. Télétravail possible 2j/semaine.",
+        "url": "https://linkedin.com/jobs/view/123",
+        "source": "LinkedIn",
+        "isRemote": true
+      }
+    },
+    {
+      "userId": "Lucas Dev",
+      "jobId": "job_002",
+      "timestamp": "2025-11-24T17:12:34.378Z",
+      "result": {
+        "score": 20,
+        "reason": "Pas le bon poste.",
+        "isMatch": false
+      },
+      "jobDetails": {
+        "id": "job_002",
+        "title": "Stage Marketing Digital (Pas Alternance)",
+        "company": "OldSchool Agency",
+        "location": "Lyon",
+        "description": "Stage de 6 mois pour gérer la machine à café et faire des posts Facebook.",
+        "url": "https://indeed.com/view/456",
+        "source": "Indeed",
+        "isRemote": false
+      }
+    },
+    {
+      "userId": "Lucas Dev",
+      "jobId": "job_003",
+      "timestamp": "2025-11-24T17:12:34.379Z",
+      "result": {
+        "score": 20,
+        "reason": "Pas le bon poste.",
+        "isMatch": false
+      },
+      "jobDetails": {
+        "id": "job_003",
+        "title": "Alternance Data Analyst",
+        "company": "BigData Inc",
+        "location": "Paris",
+        "description": "Rejoignez notre équipe data. SQL, Python, Tableau. Idéal pour profil école d'ingénieur.",
+        "url": "https://hellowork.com/789",
+        "source": "HelloWork",
+        "isRemote": false
+      }
+    }
+  ]
+}

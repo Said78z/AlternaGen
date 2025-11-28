@@ -1,0 +1,30 @@
+{
+    "name": "alternagen-mvp",
+    "version": "1.0.0",
+    "description": "AlternaGen - AI Agent for Alternance Hunting",
+    "main": "src/index.ts",
+    "scripts": {
+        "start": "ts-node src/index.ts",
+        "night-shift": "ts-node src/scripts/night_shift.ts",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "keywords": [
+        "ai",
+        "recruitment",
+        "automation"
+    ],
+    "author": "AlternaGen",
+    "license": "ISC",
+    "dependencies": {
+        "@clerk/nextjs": "^6.35.5",
+        "apify-client": "^2.9.5",
+        "dotenv": "^16.4.5",
+        "openai": "^4.56.0",
+        "zod": "^3.23.8"
+    },
+    "devDependencies": {
+        "@types/node": "^22.5.0",
+        "ts-node": "^10.9.2",
+        "typescript": "^5.5.4"
+    }
+}
