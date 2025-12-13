@@ -1,6 +1,13 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import logger from './utils/logger';
+import { errorHandler, notFoundHandler } from './middleware/error.middleware';
+
+// Import routes
+import authRoutes from './routes/auth.routes';
+import usersRoutes from './routes/users.routes';
+import profilesRoutes from './routes/profiles.routes';
 
 // Load environment variables
 dotenv.config();
@@ -8,36 +15,57 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Middleware
-app.use(cors());
+// CORS configuration
+const corsOptions = {
+    origin: [
+        process.env.FRONTEND_URL || 'http://localhost:3000',
+        process.env.EXTENSION_URL || 'chrome-extension://*',
+    ],
+    credentials: true,
+};
+
+app.use(cors(corsOptions));
+
+// Body parsing middleware
+// Note: /auth/webhook uses raw body, so it's handled in its route
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Health check endpoint
 app.get('/health', (_req: Request, res: Response) => {
-    res.status(200).json({ status: 'ok' });
+    res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
 // Root endpoint
 app.get('/', (_req: Request, res: Response) => {
     res.json({
-        message: 'AlternaGen API',
+        message: 'AlternaGen API V1',
         version: '1.0.0',
         endpoints: {
             health: '/health',
+            auth: '/auth',
+            users: '/users',
+            profiles: '/profiles',
         },
     });
 });
 
+// API Routes
+app.use('/auth', authRoutes);
+app.use('/users', usersRoutes);
+app.use('/profiles', profilesRoutes);
+
 // 404 handler
-app.use((_req: Request, res: Response) => {
-    res.status(404).json({ error: 'Not Found' });
-});
+app.use(notFoundHandler);
+
+// Error handler (must be last)
+app.use(errorHandler);
 
 // Start server
 app.listen(PORT, () => {
-    console.log(`🚀 AlternaGen API running on port ${PORT}`);
-    console.log(`📍 Health check: http://localhost:${PORT}/health`);
+    logger.info(`🚀 AlternaGen API running on port ${PORT}`);
+    logger.info(`📍 Health check: http://localhost:${PORT}/health`);
+    logger.info(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
 });
 
 export default app;
