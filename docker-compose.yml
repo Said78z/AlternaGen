@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    container_name: altergen-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: altergen
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend API
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: altergen-api
+    environment:
+      PORT: 3001
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/altergen
+      NODE_ENV: development
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./api:/app
+      - /app/node_modules
+    depends_on:
+      db:
+        condition: service_healthy
+    command: npm run dev
+
+  # Frontend Web App
+  web:
+    build:
+      context: ./web/my-clek-app
+      dockerfile: Dockerfile
+      target: development
+    container_name: altergen-web
+    environment:
+      VITE_API_URL: http://localhost:3001
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./web/my-clek-app:/app
+      - /app/node_modules
+    depends_on:
+      - api
+    command: npm run dev
+
+volumes:
+  postgres_data:
+    driver: local
