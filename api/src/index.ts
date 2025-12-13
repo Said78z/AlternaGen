@@ -8,6 +8,9 @@ import { errorHandler, notFoundHandler } from './middleware/error.middleware';
 import authRoutes from './routes/auth.routes';
 import usersRoutes from './routes/users.routes';
 import profilesRoutes from './routes/profiles.routes';
+import jobsRoutes from './routes/jobs.routes';
+import matchRoutes from './routes/match.routes';
+import applicationsRoutes from './routes/applications.routes';
 
 // Load environment variables
 dotenv.config();
@@ -46,6 +49,9 @@ app.get('/', (_req: Request, res: Response) => {
             auth: '/auth',
             users: '/users',
             profiles: '/profiles',
+            jobs: '/jobs',
+            match: '/match',
+            applications: '/applications',
         },
     });
 });
@@ -54,6 +60,9 @@ app.get('/', (_req: Request, res: Response) => {
 app.use('/auth', authRoutes);
 app.use('/users', usersRoutes);
 app.use('/profiles', profilesRoutes);
+app.use('/jobs', jobsRoutes);
+app.use('/match', matchRoutes);
+app.use('/applications', applicationsRoutes);
 
 // 404 handler
 app.use(notFoundHandler);
