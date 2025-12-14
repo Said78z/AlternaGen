@@ -28,6 +28,8 @@ model User {
   jobs         Job[]
   applications Application[]
   matchScores  MatchScore[]
+  credits      Credits?
+  generations  Generation[]
 
   @@map("users")
 }
@@ -130,4 +132,50 @@ model MatchScore {
   @@unique([userId, jobId])
   @@index([userId, score(sort: Desc)])
   @@map("match_scores")
+}
+
+// ============================================
+// CREDITS SYSTEM (Freemium)
+// ============================================
+
+model Credits {
+  id              String   @id @default(uuid())
+  userId          String   @unique @map("user_id")
+  freeCredits     Int      @default(5) @map("free_credits") // 5 free on signup
+  paidCredits     Int      @default(0) @map("paid_credits") // Unlimited if subscribed
+  isSubscribed    Boolean  @default(false) @map("is_subscribed") // 10€/month
+  subscriptionEnd DateTime? @map("subscription_end")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("credits")
+}
+
+// ============================================
+// GENERATION HISTORY
+// ============================================
+
+enum GenerationType {
+  CV
+  COVER_LETTER
+
+  @@map("generation_type")
+}
+
+model Generation {
+  id        String         @id @default(uuid())
+  userId    String         @map("user_id")
+  type      GenerationType
+  input     String         @db.Text // JSON of form data
+  output    String         @db.Text // Generated content
+  createdAt DateTime       @default(now()) @map("created_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("generations")
 }

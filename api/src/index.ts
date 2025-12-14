@@ -11,6 +11,8 @@ import profilesRoutes from './routes/profiles.routes';
 import jobsRoutes from './routes/jobs.routes';
 import matchRoutes from './routes/match.routes';
 import applicationsRoutes from './routes/applications.routes';
+import aiRoutes from './routes/ai.routes';
+import stripeRoutes from './routes/stripe.routes';
 
 // Load environment variables
 dotenv.config();
@@ -52,6 +54,8 @@ app.get('/', (_req: Request, res: Response) => {
             jobs: '/jobs',
             match: '/match',
             applications: '/applications',
+            ai: '/ai',
+            stripe: '/stripe',
         },
     });
 });
@@ -63,6 +67,8 @@ app.use('/profiles', profilesRoutes);
 app.use('/jobs', jobsRoutes);
 app.use('/match', matchRoutes);
 app.use('/applications', applicationsRoutes);
+app.use('/ai', aiRoutes);
+app.use('/stripe', stripeRoutes);
 
 // 404 handler
 app.use(notFoundHandler);
