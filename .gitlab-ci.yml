@@ -1,0 +1,33 @@
+stages:
+  - lint
+  - build
+  - test
+
+variables:
+  NODE_ENV: "test"
+
+lint:
+  stage: lint
+  image: node:18
+  script:
+    - cd api && npm ci && npm run lint
+    - cd ../web && npm ci && npm run lint
+  allow_failure: true
+
+build:
+  stage: build
+  image: node:18
+  script:
+    - cd api && npm ci && npm run build
+    - cd ../web && npm ci && npm run build
+  artifacts:
+    paths:
+      - api/dist/
+      - web/.next/
+
+test_unit:
+  stage: test
+  image: node:18
+  script:
+    - cd api && npm ci && npm test
+    # Web tests skipped for now as they require fuller environment setup in this MVP

@@ -79,12 +79,12 @@ export const getRecommendations = async (req: Request, res: Response): Promise<v
 
         const limit = parseInt(req.query.limit as string) || 10;
 
-        const recommendations = await prisma.matchScore.findMany({
+        const recommendations = await prisma.jobMatch.findMany({
             where: { userId: user.id },
-            orderBy: { score: 'desc' },
+            orderBy: { scoreTotal: 'desc' },
             take: limit,
             include: {
-                job: true,
+                jobOffer: true,
             },
         });
 

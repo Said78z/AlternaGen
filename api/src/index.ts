@@ -3,6 +3,9 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import logger from './utils/logger';
 import { errorHandler, notFoundHandler } from './middleware/error.middleware';
+import { requestIdMiddleware } from './middleware/requestId.middleware';
+import { prisma } from './utils/database';
+import metrics from './utils/metrics';
 
 // Import routes
 import authRoutes from './routes/auth.routes';
@@ -13,6 +16,7 @@ import matchRoutes from './routes/match.routes';
 import applicationsRoutes from './routes/applications.routes';
 import aiRoutes from './routes/ai.routes';
 import stripeRoutes from './routes/stripe.routes';
+import agentRoutes from './routes/agent.routes';
 
 // Load environment variables
 dotenv.config();
@@ -31,14 +35,39 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
+// Request ID middleware (must be first)
+app.use(requestIdMiddleware);
+
 // Body parsing middleware
 // Note: /auth/webhook uses raw body, so it's handled in its route
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Health check endpoint
-app.get('/health', (_req: Request, res: Response) => {
-    res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+// Health check endpoint with DB connectivity
+app.get('/health', async (_req, res) => {
+    try {
+        await prisma.$queryRaw`SELECT 1`;
+        res.status(200).json({
+            status: 'ok',
+            timestamp: new Date().toISOString(),
+            database: 'connected'
+        });
+    } catch (error) {
+        logger.error({ error }, 'Health check failed');
+        res.status(503).json({
+            status: 'error',
+            timestamp: new Date().toISOString(),
+            database: 'disconnected'
+        });
+    }
+});
+
+// Metrics endpoint
+app.get('/metrics', (_req, res) => {
+    res.json({
+        timestamp: new Date().toISOString(),
+        metrics: metrics.getAll()
+    });
 });
 
 // Root endpoint
@@ -69,6 +98,7 @@ app.use('/match', matchRoutes);
 app.use('/applications', applicationsRoutes);
 app.use('/ai', aiRoutes);
 app.use('/stripe', stripeRoutes);
+app.use('/agent', agentRoutes);
 
 // 404 handler
 app.use(notFoundHandler);

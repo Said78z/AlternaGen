@@ -1,26 +1,17 @@
-/**
- * Simple logger utility
- * Can be extended to use Winston or Pino later
- */
+import pino from 'pino';
 
-export const logger = {
-    info: (message: string, ...args: unknown[]) => {
-        console.log(`[INFO] ${new Date().toISOString()} - ${message}`, ...args);
+const logger = pino({
+    level: process.env.LOG_LEVEL || 'info',
+    formatters: {
+        level: (label: string) => {
+            return { level: label.toUpperCase() };
+        },
     },
-
-    error: (message: string, ...args: unknown[]) => {
-        console.error(`[ERROR] ${new Date().toISOString()} - ${message}`, ...args);
-    },
-
-    warn: (message: string, ...args: unknown[]) => {
-        console.warn(`[WARN] ${new Date().toISOString()} - ${message}`, ...args);
-    },
-
-    debug: (message: string, ...args: unknown[]) => {
-        if (process.env.NODE_ENV === 'development') {
-            console.debug(`[DEBUG] ${new Date().toISOString()} - ${message}`, ...args);
-        }
-    },
-};
+    timestamp: pino.stdTimeFunctions.isoTime,
+    redact: {
+        paths: ['req.headers.authorization', 'password', 'token'],
+        remove: true
+    }
+});
 
 export default logger;

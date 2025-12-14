@@ -1,11 +1,13 @@
 import { Router } from 'express';
 import { requireAuth } from '../middleware/auth.middleware';
+import { requirePro } from '../middleware/user.middleware';
 import { calculateMatch, getRecommendations } from '../controllers/match.controller';
 
 const router = Router();
 
-// All routes require authentication
+// All routes require authentication and PRO subscription
 router.use(requireAuth);
+router.use(requirePro);
 
 /**
  * @route   POST /match/calculate

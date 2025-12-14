@@ -69,8 +69,20 @@ export async function getCredits(req: Request, res: Response) {
 
 export async function generateCVController(req: Request, res: Response) {
     try {
-        const userId = req.userId!;
         const input: CVInput = req.body;
+
+        // Ensure user exists (Auto-sync for MVP fluidity)
+        if (!req.userId && req.clerkId) {
+            const user = await prisma.user.create({
+                data: {
+                    clerkId: req.clerkId,
+                    email: `user_${req.clerkId}@alternagen.com`, // Fallback
+                }
+            });
+            req.userId = user.id;
+        }
+
+        const userId = req.userId!;
 
         // Check credits
         const hasCredits = await checkAndDeductCredits(userId);

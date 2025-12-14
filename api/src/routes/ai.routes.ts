@@ -6,11 +6,13 @@ import {
     generateCoverLetterController,
     getGenerationHistory,
 } from '../controllers/ai.controller';
+import { syncUserMiddleware } from '../middleware/user.middleware';
 
 const router = Router();
 
 // All routes require authentication
 router.use(requireAuth);
+router.use(syncUserMiddleware);
 
 // Credits
 router.get('/credits', getCredits);

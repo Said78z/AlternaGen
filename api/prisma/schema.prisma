@@ -1,4 +1,4 @@
-// Prisma schema for AlternaGen V1
+// Prisma schema for AlternaGen MVP PRO
 // Database: PostgreSQL 15
 
 generator client {
@@ -11,7 +11,7 @@ datasource db {
 }
 
 // ============================================
-// USER MANAGEMENT
+// 1. CORE IDENTITY & BILLING
 // ============================================
 
 model User {
@@ -23,159 +23,216 @@ model User {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  // Relations
-  profile      Profile?
-  jobs         Job[]
+  // MVP 2 Relations
+  subscription Subscription?
+  profile      UserProfile?
+  vision       UserVision?
+  credits      Credits? // Legacy MVP1, keep for now or migrate to Plan logic
+  
+  // Agent Relations
+  matches      JobMatch[]
   applications Application[]
-  matchScores  MatchScore[]
-  credits      Credits?
+  agentTasks   AgentTask[]
   generations  Generation[]
 
   @@map("users")
 }
 
-model Profile {
-  id                 String   @id @default(uuid())
-  userId             String   @unique @map("user_id")
-  educationLevel     String?  @map("education_level") // "Bac+3", "Bac+5", etc.
-  fieldOfStudy       String?  @map("field_of_study") // "Marketing", "Computer Science"
-  skills             String[] // Array of skills
-  preferredLocations String[] @map("preferred_locations") // ["Paris", "Lyon"]
-  preferredSectors   String[] @map("preferred_sectors") // ["Tech", "Finance"]
-  cvUrl              String?  @map("cv_url")
-  bio                String?  @db.Text
-  createdAt          DateTime @default(now()) @map("created_at")
-  updatedAt          DateTime @updatedAt @map("updated_at")
+model Subscription {
+  id                   String    @id @default(uuid())
+  userId               String    @unique @map("user_id")
+  stripeCustomerId     String?   @map("stripe_customer_id")
+  stripeSubscriptionId String?   @unique @map("stripe_subscription_id")
+  planCode             String    @map("plan_code") // "BASIC", "PRO"
+  status               String    // "active", "past_due", "canceled", "incomplete"
+  currentPeriodEnd     DateTime? @map("current_period_end")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
 
-  // Relations
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@map("profiles")
+  @@map("subscriptions")
+}
+
+model Credits {
+  id              String   @id @default(uuid())
+  userId          String   @unique @map("user_id")
+  freeCredits     Int      @default(5)
+  isSubscribed    Boolean  @default(false) 
+  subscriptionEnd DateTime?
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@map("credits")
 }
 
 // ============================================
-// JOB MANAGEMENT
+// 2. PROFILE & VISION (VEE)
 // ============================================
 
-model Job {
-  id           String   @id @default(uuid())
-  userId       String   @map("user_id")
-  title        String
-  company      String
-  location     String?
-  description  String?  @db.Text
-  requirements String?  @db.Text
-  url          String   @unique
-  source       String? // "LinkedIn", "Indeed", "Manual", etc.
-  savedAt      DateTime @default(now()) @map("saved_at")
-  createdAt    DateTime @default(now()) @map("created_at")
+model UserProfile {
+  userId             String   @id @map("user_id")
+  educationLevel     String?  @map("education_level") 
+  fieldOfStudy       String?  @map("field_of_study")
+  skills             String[] // Array of strings
+  languages          String[] 
+  preferredLocations String[] @map("preferred_locations")
+  bio                String?  @db.Text
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_profiles")
+}
+
+model UserVision {
+  userId             String   @id @map("user_id")
+  dreams             String?  @db.Text
+  constraints        String?  @db.Text
+  preferredIndustries String[] @map("preferred_industries")
+  targetRoles        String[] @map("target_roles")
+  alterGoal          String?  @map("alter_goal") // "Signer avant septembre"
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_visions")
+}
+
+// ============================================
+// 3. MARKET & MATCHING (The Agent)
+// ============================================
+
+model JobOffer {
+  id          String   @id @default(uuid())
+  source      String   // "MANUAL", "SCRAPER_V1", "PARTNER"
+  sourceRef   String?  @map("source_ref") // ID in external system
+  url         String   @unique
+  title       String
+  company     String
+  location    String?
+  description String?  @db.Text
+  tags        String[]
+  publishedAt DateTime? @map("published_at")
+  scrapedAt   DateTime @default(now()) @map("scraped_at")
 
   // Relations
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  matches     JobMatch[]
   applications Application[]
-  matchScores  MatchScore[]
 
-  @@index([userId])
-  @@index([savedAt(sort: Desc)])
-  @@map("jobs")
+  @@index([source, sourceRef])
+  @@map("job_offers")
+}
+
+model JobMatch {
+  id             String   @id @default(uuid())
+  userId         String   @map("user_id")
+  jobOfferId     String   @map("job_offer_id")
+  scoreTotal     Int      // 0-100
+  scoreBreakdown Json?    @map("score_breakdown") // { skills: 30, location: 20 ... }
+  explanation    String?  @db.Text
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobOffer JobOffer @relation(fields: [jobOfferId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, jobOfferId])
+  @@index([userId, scoreTotal(sort: Desc)])
+  @@map("job_matches")
 }
 
 // ============================================
-// APPLICATION TRACKING
+// 4. PIPELINE & TRACKING
 // ============================================
 
 enum ApplicationStatus {
   SAVED
   APPLIED
+  WAITING
   INTERVIEW
   OFFER
+  SIGNED
   REJECTED
-
-  @@map("application_status")
 }
 
 model Application {
-  id        String            @id @default(uuid())
-  userId    String            @map("user_id")
-  jobId     String            @map("job_id")
-  status    ApplicationStatus @default(SAVED)
-  notes     String?           @db.Text
-  appliedAt DateTime?         @map("applied_at")
-  createdAt DateTime          @default(now()) @map("created_at")
-  updatedAt DateTime          @updatedAt @map("updated_at")
+  id             String            @id @default(uuid())
+  userId         String            @map("user_id")
+  jobOfferId     String?           @map("job_offer_id") // Can be null if custom application
+  externalUrl    String?           @map("external_url") // If applying to external offer not in DB
+  status         ApplicationStatus @default(SAVED)
+  notes          String?           @db.Text
+  appliedAt      DateTime?         @map("applied_at")
+  lastContactAt  DateTime?         @map("last_contact_at")
+  nextActionAt   DateTime?         @map("next_action_at")
+  createdAt      DateTime          @default(now()) @map("created_at")
+  updatedAt      DateTime          @updatedAt @map("updated_at")
 
-  // Relations
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  job  Job  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobOffer JobOffer? @relation(fields: [jobOfferId], references: [id])
+  events   ApplicationEvent[]
 
-  @@unique([userId, jobId])
+  @@unique([userId, jobOfferId]) 
   @@index([userId, status])
   @@map("applications")
 }
 
-// ============================================
-// MATCHING SYSTEM
-// ============================================
+model ApplicationEvent {
+  id            String   @id @default(uuid())
+  applicationId String   @map("application_id")
+  eventType     String   // "STATUS_CHANGED", "FOLLOWUP", "NOTE"
+  payload       Json?    // metadata
+  eventAt       DateTime @default(now()) @map("event_at")
 
-model MatchScore {
-  id           String   @id @default(uuid())
-  userId       String   @map("user_id")
-  jobId        String   @map("job_id")
-  score        Int // 0-100
-  explanation  String?  @db.Text
-  calculatedAt DateTime @default(now()) @map("calculated_at")
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 
-  // Relations
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  job  Job  @relation(fields: [jobId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, jobId])
-  @@index([userId, score(sort: Desc)])
-  @@map("match_scores")
+  @@index([applicationId, eventAt(sort: Desc)])
+  @@map("application_events")
 }
 
 // ============================================
-// CREDITS SYSTEM (Freemium)
+// 5. AGENT INTERNALS
 // ============================================
 
-model Credits {
-  id              String   @id @default(uuid())
-  userId          String   @unique @map("user_id")
-  freeCredits     Int      @default(5) @map("free_credits") // 5 free on signup
-  paidCredits     Int      @default(0) @map("paid_credits") // Unlimited if subscribed
-  isSubscribed    Boolean  @default(false) @map("is_subscribed") // 10€/month
-  subscriptionEnd DateTime? @map("subscription_end")
-  createdAt       DateTime @default(now()) @map("created_at")
-  updatedAt       DateTime @updatedAt @map("updated_at")
+enum TaskStatus {
+  QUEUED
+  RUNNING
+  SUCCESS
+  FAILED
+}
 
-  // Relations
+model AgentTask {
+  id        String     @id @default(uuid())
+  userId    String     @map("user_id")
+  taskType  String     // "FETCH_OFFERS", "RUN_MATCH", "GENERATE_CV"
+  status    TaskStatus @default(QUEUED)
+  input     Json?
+  output    Json?
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@map("credits")
+  @@index([userId, status])
+  @@map("agent_tasks")
 }
 
-// ============================================
-// GENERATION HISTORY
-// ============================================
-
-enum GenerationType {
-  CV
-  COVER_LETTER
-
-  @@map("generation_type")
-}
-
+// Legacy for MVP 1 history
 model Generation {
-  id        String         @id @default(uuid())
-  userId    String         @map("user_id")
-  type      GenerationType
-  input     String         @db.Text // JSON of form data
-  output    String         @db.Text // Generated content
-  createdAt DateTime       @default(now()) @map("created_at")
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  type      String   // "CV", "COVER_LETTER"
+  input     String   @db.Text
+  output    String   @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
 
-  // Relations
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId, createdAt(sort: Desc)])
   @@map("generations")
+}
+
+model StripeWebhookEvent {
+  id        String   @id @default(uuid())
+  eventId   String   @unique @map("event_id")
+  type      String
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  @@map("stripe_webhook_events")
 }

@@ -26,9 +26,9 @@ if [ ! -f "api/.env" ]; then
   exit 1
 fi
 
-if [ ! -f "web/my-clek-app/.env" ]; then
-  echo -e "${RED}Error: web/my-clek-app/.env not found${NC}"
-  echo "Please create web/my-clek-app/.env from web/my-clek-app/.env.example"
+if [ ! -f "web/.env" ]; then
+  echo -e "${RED}Error: web/.env not found${NC}"
+  echo "Please create web/.env"
   exit 1
 fi
 
