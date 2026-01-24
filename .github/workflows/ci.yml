@@ -195,17 +195,15 @@ jobs:
             type=raw,value=latest
             type=sha,prefix={{branch}}-
       
-      - name: Build and push API image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./api
-          file: ./api/Dockerfile
-          push: true
-          tags: ${{ steps.meta-api.outputs.tags }}
-          labels: ${{ steps.meta-api.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           target: production
+
+      - name: Scan API Image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_API }}:latest
+          severity: 'CRITICAL,HIGH'
       
       - name: Extract metadata for Web
         id: meta-web
@@ -216,14 +214,12 @@ jobs:
             type=raw,value=latest
             type=sha,prefix={{branch}}-
       
-      - name: Build and push Web image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./web/my-clek-app
-          file: ./web/my-clek-app/Dockerfile
-          push: true
-          tags: ${{ steps.meta-web.outputs.tags }}
-          labels: ${{ steps.meta-web.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           target: production
+
+      - name: Scan Web Image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_WEB }}:latest
+          severity: 'CRITICAL,HIGH'

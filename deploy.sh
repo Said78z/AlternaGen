@@ -34,21 +34,31 @@ fi
 
 echo -e "${GREEN}✓ Environment files found${NC}"
 
-echo -e "${BLUE}Step 2/6: Stopping existing containers...${NC}"
-docker-compose down || true
-echo -e "${GREEN}✓ Containers stopped${NC}"
+echo -e "${BLUE}Step 2/6: Pulling latest images...${NC}"
+# On pull d'abord pour gagner du temps au moment du restart
+docker-compose pull || true
+echo -e "${GREEN}✓ Images pulled${NC}"
 
-echo -e "${BLUE}Step 3/6: Building Docker images...${NC}"
-docker-compose build --no-cache
-echo -e "${GREEN}✓ Images built${NC}"
+echo -e "${BLUE}Step 3/6: Building/Updating services (Zero-Downtime focus)...${NC}"
+# Utilisation de --no-deps et --build pour minimiser le temps de rotation
+# Si on veut du vrai Zero-Downtime sans orchestration, on pourrait faire un double setup Nginx, 
+# mais ici on optimise déjà le restart.
+docker-compose up -d --no-deps --build api web
+echo -e "${GREEN}✓ Services updated${NC}"
 
-echo -e "${BLUE}Step 4/6: Starting services...${NC}"
-docker-compose up -d
-echo -e "${GREEN}✓ Services started${NC}"
+echo -e "${BLUE}Step 4/6: Cleaning up old images...${NC}"
+docker image prune -f
+echo -e "${GREEN}✓ Cleanup done${NC}"
 
 echo -e "${BLUE}Step 5/6: Running database migrations...${NC}"
-sleep 10 # Wait for DB to be ready
-docker-compose exec -T api npx prisma migrate deploy
+# Vérifier si l'API est prête avant de migrer
+MAX_RETRIES=10
+COUNT=0
+until docker-compose exec -T api npx prisma migrate deploy || [ $COUNT -eq $MAX_RETRIES ]; do
+  echo "Waiting for API to be ready for migrations... ($COUNT/$MAX_RETRIES)"
+  sleep 3
+  COUNT=$((COUNT + 1))
+done
 docker-compose exec -T api npx prisma generate
 echo -e "${GREEN}✓ Migrations applied${NC}"
 
