@@ -3,7 +3,7 @@ version: '3.8'
 services:
   # Postgres Primary
   db-primary:
-    image: bitnami/postgresql:15
+    image: bitnami/postgresql:latest
     container_name: altergen-db-primary
     environment:
       POSTGRESQL_USERNAME: ${POSTGRES_USER:-postgres}
@@ -24,7 +24,7 @@ services:
 
   # Postgres Replica 1
   db-replica-1:
-    image: bitnami/postgresql:15
+    image: bitnami/postgresql:latest
     container_name: altergen-db-replica-1
     depends_on:
       db-primary:
@@ -43,7 +43,7 @@ services:
 
   # Postgres Replica 2
   db-replica-2:
-    image: bitnami/postgresql:15
+    image: bitnami/postgresql:latest
     container_name: altergen-db-replica-2
     depends_on:
       db-primary:
