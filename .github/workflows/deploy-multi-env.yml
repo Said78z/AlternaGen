@@ -19,6 +19,13 @@ jobs:
         run: |
           cd web/kassy-kube && npm install
           cd ../../api && npm install
+      - name: Security Audit (DevSecOps)
+        run: |
+          cd web/kassy-kube && npm audit --audit-level=high
+          cd ../../api && npm audit --audit-level=high
+      - name: Lint
+        run: |
+          cd web/kassy-kube && npm run lint
       - name: Build
         run: |
           cd web/kassy-kube && npm run build

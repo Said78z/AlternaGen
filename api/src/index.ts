@@ -1,5 +1,7 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
+import hpp from 'hpp';
 import dotenv from 'dotenv';
 import logger from './utils/logger';
 import { errorHandler, notFoundHandler } from './middleware/error.middleware';
@@ -33,15 +35,16 @@ const corsOptions = {
     credentials: true,
 };
 
+app.use(helmet());
+app.use(hpp());
 app.use(cors(corsOptions));
 
 // Request ID middleware (must be first)
 app.use(requestIdMiddleware);
 
 // Body parsing middleware
-// Note: /auth/webhook uses raw body, so it's handled in its route
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10kb' }));
+app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
 // Health check endpoint with DB connectivity
 app.get('/health', async (_req, res) => {
