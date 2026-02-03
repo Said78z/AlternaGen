@@ -36,7 +36,7 @@ export async function getDailyBrief(req: Request, res: Response) {
         };
 
         res.json({ success: true, data: brief });
-    } catch (error) {
+    } catch (error: any) {
         res.status(500).json({ success: false, error: 'Failed to get brief' });
     }
 }
@@ -70,7 +70,7 @@ export async function getRecommendedOffers(req: Request, res: Response) {
         }
 
         res.json({ success: true, data: matches });
-    } catch (error) {
+    } catch (error: any) {
         res.status(500).json({ success: false, error: 'Failed to fetch recommendations' });
     }
 }
@@ -86,7 +86,7 @@ export async function runAgentTask(req: Request, res: Response) {
 
         const task = await createTask(userId, taskType);
         res.json({ success: true, data: task });
-    } catch (error) {
+    } catch (error: any) {
         res.status(500).json({ success: false, error: 'Failed to run task' });
     }
 }

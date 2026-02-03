@@ -30,7 +30,7 @@ export const getCurrentUser = async (req: Request, res: Response): Promise<void>
         }
 
         res.json({ success: true, data: user });
-    } catch (error) {
+    } catch (error: any) {
         logger.error('Get current user error:', error);
         res.status(500).json({
             success: false,
@@ -65,7 +65,7 @@ export const updateCurrentUser = async (req: Request, res: Response): Promise<vo
         });
 
         res.json({ success: true, data: user });
-    } catch (error) {
+    } catch (error: any) {
         logger.error('Update user error:', error);
         res.status(500).json({
             success: false,

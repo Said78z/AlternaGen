@@ -68,7 +68,7 @@ export const getJobs = async (req: Request, res: Response): Promise<void> => {
                 totalPages: Math.ceil(total / limit),
             },
         });
-    } catch (error) {
+    } catch (error: any) {
         logger.error('Get jobs error:', error);
         res.status(500).json({
             success: false,
@@ -129,7 +129,7 @@ export const getJobById = async (req: Request, res: Response): Promise<void> => 
         }
 
         res.json({ success: true, data: job });
-    } catch (error) {
+    } catch (error: any) {
         logger.error('Get job error:', error);
         res.status(500).json({
             success: false,
@@ -199,7 +199,7 @@ export const createJob = async (req: Request, res: Response): Promise<void> => {
         // For now, we'll add it in the matching service
 
         res.status(201).json({ success: true, data: job });
-    } catch (error) {
+    } catch (error: any) {
         logger.error('Create job error:', error);
         res.status(500).json({
             success: false,
@@ -254,7 +254,7 @@ export const deleteJob = async (req: Request, res: Response): Promise<void> => {
         });
 
         res.json({ success: true, message: 'Job deleted successfully' });
-    } catch (error) {
+    } catch (error: any) {
         logger.error('Delete job error:', error);
         res.status(500).json({
             success: false,

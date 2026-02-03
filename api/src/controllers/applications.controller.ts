@@ -43,7 +43,7 @@ export const getApplications = async (req: Request, res: Response): Promise<void
         });
 
         res.json({ success: true, data: applications });
-    } catch (error) {
+    } catch (error: any) {
         logger.error('Get applications error:', error);
         res.status(500).json({
             success: false,
@@ -111,7 +111,7 @@ export const createApplication = async (req: Request, res: Response): Promise<vo
         });
 
         res.status(201).json({ success: true, data: application });
-    } catch (error) {
+    } catch (error: any) {
         logger.error('Create application error:', error);
         res.status(500).json({
             success: false,
@@ -176,7 +176,7 @@ export const updateApplication = async (req: Request, res: Response): Promise<vo
         });
 
         res.json({ success: true, data: updated });
-    } catch (error) {
+    } catch (error: any) {
         logger.error('Update application error:', error);
         res.status(500).json({
             success: false,
@@ -231,7 +231,7 @@ export const deleteApplication = async (req: Request, res: Response): Promise<vo
         });
 
         res.json({ success: true, message: 'Application deleted successfully' });
-    } catch (error) {
+    } catch (error: any) {
         logger.error('Delete application error:', error);
         res.status(500).json({
             success: false,

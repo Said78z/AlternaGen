@@ -39,7 +39,7 @@ export const getProfile = async (req: Request, res: Response): Promise<void> => 
         }
 
         res.json({ success: true, data: user.profile });
-    } catch (error) {
+    } catch (error: any) {
         logger.error('Get profile error:', error);
         res.status(500).json({
             success: false,
@@ -98,7 +98,7 @@ export const createProfile = async (req: Request, res: Response): Promise<void> 
         });
 
         res.status(201).json({ success: true, data: profile });
-    } catch (error) {
+    } catch (error: any) {
         logger.error('Create profile error:', error);
         res.status(500).json({
             success: false,
@@ -149,7 +149,7 @@ export const updateProfile = async (req: Request, res: Response): Promise<void> 
         });
 
         res.json({ success: true, data: profile });
-    } catch (error) {
+    } catch (error: any) {
         logger.error('Update profile error:', error);
         res.status(500).json({
             success: false,

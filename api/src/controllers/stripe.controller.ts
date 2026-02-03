@@ -22,7 +22,7 @@ export async function createSubscription(req: Request, res: Response) {
         });
 
         res.json({ url: checkoutUrl });
-    } catch (error) {
+    } catch (error: any) {
         logger.error('Create subscription error:', error);
         res.status(500).json({ error: 'Failed to create subscription' });
     }
@@ -33,7 +33,7 @@ export async function stripeWebhook(req: Request, res: Response) {
         const signature = req.headers['stripe-signature'] as string;
         await handleWebhook(req.body, signature);
         res.json({ received: true });
-    } catch (error) {
+    } catch (error: any) {
         logger.error('Stripe webhook error:', error);
         res.status(400).json({ error: 'Webhook error' });
     }

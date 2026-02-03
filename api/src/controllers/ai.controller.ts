@@ -61,7 +61,7 @@ export async function getCredits(req: Request, res: Response) {
             isSubscribed: credits.isSubscribed,
             subscriptionEnd: credits.subscriptionEnd,
         });
-    } catch (error) {
+    } catch (error: any) {
         logger.error('Get credits error:', error);
         res.status(500).json({ error: 'Failed to get credits' });
     }
@@ -107,7 +107,7 @@ export async function generateCVController(req: Request, res: Response) {
         });
 
         res.json({ cv });
-    } catch (error) {
+    } catch (error: any) {
         logger.error('Generate CV error:', error);
         res.status(500).json({ error: 'Failed to generate CV' });
     }
@@ -141,7 +141,7 @@ export async function generateCoverLetterController(req: Request, res: Response)
         });
 
         res.json({ coverLetter });
-    } catch (error) {
+    } catch (error: any) {
         logger.error('Generate cover letter error:', error);
         res.status(500).json({ error: 'Failed to generate cover letter' });
     }
@@ -159,7 +159,7 @@ export async function getGenerationHistory(req: Request, res: Response) {
         });
 
         res.json({ generations });
-    } catch (error) {
+    } catch (error: any) {
         logger.error('Get generation history error:', error);
         res.status(500).json({ error: 'Failed to get generation history' });
     }
