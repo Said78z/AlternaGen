@@ -5,6 +5,10 @@ services:
   db-primary:
     image: bitnami/postgresql:latest
     container_name: altergen-db-primary
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
     environment:
       POSTGRESQL_USERNAME: ${POSTGRES_USER:-postgres}
       POSTGRESQL_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
@@ -12,10 +16,12 @@ services:
       POSTGRESQL_REPLICATION_MODE: master
       POSTGRESQL_REPLICATION_USER: repl_user
       POSTGRESQL_REPLICATION_PASSWORD: repl_password
-    ports:
-      - "5432:5432"
+    # ports: # REMOVED for production security (CERT-FR)
+    #   - "5432:5432"
     volumes:
       - postgres_primary_data:/bitnami/postgresql
+    networks:
+      - altergen-internal
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
@@ -26,6 +32,10 @@ services:
   db-replica-1:
     image: bitnami/postgresql:latest
     container_name: altergen-db-replica-1
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
     depends_on:
       db-primary:
         condition: service_healthy
@@ -40,11 +50,17 @@ services:
       POSTGRESQL_REPLICATION_PASSWORD: repl_password
     volumes:
       - postgres_replica_1_data:/bitnami/postgresql
+    networks:
+      - altergen-internal
 
   # Postgres Replica 2
   db-replica-2:
     image: bitnami/postgresql:latest
     container_name: altergen-db-replica-2
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
     depends_on:
       db-primary:
         condition: service_healthy
@@ -59,6 +75,8 @@ services:
       POSTGRESQL_REPLICATION_PASSWORD: repl_password
     volumes:
       - postgres_replica_2_data:/bitnami/postgresql
+    networks:
+      - altergen-internal
 
   # Backend API
   api:
@@ -66,6 +84,12 @@ services:
       context: ./api
       dockerfile: Dockerfile
     container_name: altergen-api
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
     environment:
       PORT: 3001
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db-primary:5432/${POSTGRES_DB:-altergen}
@@ -79,39 +103,35 @@ services:
     depends_on:
       db-primary:
         condition: service_healthy
+    networks:
+      - altergen-public
+      - altergen-internal
     command: npm run dev
 
-  # Frontend Web App
-  # web:
-  #   build:
-  #     context: ./web/my-clek-app
-  #     dockerfile: Dockerfile
-  #     target: development
-  #   container_name: altergen-web
-  #   environment:
-  #     VITE_API_URL: http://localhost:3001
-  #   ports:
-  #     - "3000:3000"
-  #   volumes:
-  #     - ./web/my-clek-app:/app
-  #     - /app/node_modules
-  #   depends_on:
-  #     - api
-  #   command: npm run dev
-
-  # Monitoring
+  # Monitoring (CERT-FR: Keep restricted)
   prometheus:
     image: prom/prometheus:latest
     container_name: altergen-prometheus
+    security_opt:
+      - no-new-privileges:true
     volumes:
       - ./infra/prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus_data:/prometheus
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
+      - '--web.enable-lifecycle'
     ports:
-      - "9090:9090"
+      - "127.0.0.1:9090:9090" # Restricted to localhost for safety
+    networks:
+      - altergen-internal
     restart: unless-stopped
+
+networks:
+  altergen-public:
+    driver: bridge
+  altergen-internal:
+    internal: true # STRICT ISOLATION from outer world
 
 volumes:
   postgres_primary_data:
