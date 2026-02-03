@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import prisma from '../utils/database';
+import { prisma } from '../utils/database';
 import logger from '../utils/logger';
 import { CreateApplicationRequest, UpdateApplicationRequest, ApplicationStatus } from '../types';
 
@@ -38,7 +38,7 @@ export const getApplications = async (req: Request, res: Response): Promise<void
             where,
             orderBy: { createdAt: 'desc' },
             include: {
-                job: true,
+                jobOffer: true,
             },
         });
 
@@ -83,9 +83,9 @@ export const createApplication = async (req: Request, res: Response): Promise<vo
         // Check if application already exists
         const existing = await prisma.application.findUnique({
             where: {
-                userId_jobId: {
+                userId_jobOfferId: {
                     userId: user.id,
-                    jobId: data.jobId,
+                    jobOfferId: data.jobId,
                 },
             },
         });
@@ -101,12 +101,12 @@ export const createApplication = async (req: Request, res: Response): Promise<vo
         const application = await prisma.application.create({
             data: {
                 userId: user.id,
-                jobId: data.jobId,
-                status: data.status || ApplicationStatus.SAVED,
+                jobOfferId: data.jobId,
+                status: (data.status as any) || 'SAVED',
                 notes: data.notes,
             },
             include: {
-                job: true,
+                jobOffer: true,
             },
         });
 
@@ -166,12 +166,12 @@ export const updateApplication = async (req: Request, res: Response): Promise<vo
         const updated = await prisma.application.update({
             where: { id: application.id },
             data: {
-                ...(data.status && { status: data.status }),
+                ...(data.status && { status: data.status as any }),
                 ...(data.notes !== undefined && { notes: data.notes }),
                 ...(data.appliedAt && { appliedAt: data.appliedAt }),
             },
             include: {
-                job: true,
+                jobOffer: true,
             },
         });
 

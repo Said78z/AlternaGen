@@ -26,7 +26,7 @@ OPENAI_API_KEY=sk-proj-YOUR_OPENAI_API_KEY
 
 **Frontend (.env):**
 ```bash
-cd ../web/my-clek-app
+cd ../web/kassy-kube
 nano .env
 ```
 
@@ -91,7 +91,7 @@ nano .env
 # Update all keys (Clerk LIVE, Stripe, OpenAI)
 
 # Frontend
-cd ../web/my-clek-app
+cd ../web/kassy-kube
 cp .env.example .env
 nano .env
 # Update Clerk key and API URL

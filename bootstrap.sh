@@ -37,8 +37,8 @@ echo -e "${BLUE}Step 2/5: Installing project dependencies...${NC}"
 echo "Installing API dependencies..."
 cd api && npm install && cd ..
 echo "Installing Web dependencies..."
-if [ -d "web/my-clek-app" ]; then
-    cd web/my-clek-app && npm install && cd ../..
+if [ -d "web/kassy-kube" ]; then
+    cd web/kassy-kube && npm install && cd ../..
 fi
 echo -e "${GREEN}✓ Dependencies installed.${NC}"
 

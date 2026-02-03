@@ -33,7 +33,7 @@ AlternaGen is a SaaS platform that helps students find apprenticeship opportunit
 
 **Frontend Development**
 ```bash
-cd web/my-clek-app
+cd web/kassy-kube
 npm install
 npm run dev     # Start dev server
 npm run lint    # Run linter
@@ -56,7 +56,7 @@ npm run start   # Start production server
 ```
 altergen/
 ├── web/
-│   └── my-clek-app/        # Frontend (Vite + React + TypeScript)
+│   └── kassy-kube/        # Frontend (Vite + React + TypeScript)
 ├── api/                     # Backend (Express + TypeScript)
 ├── infra/                   # Infrastructure as Code (Terraform)
 ├── docs/                    # Documentation

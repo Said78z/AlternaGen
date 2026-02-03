@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { createCheckoutSession, handleWebhook } from '../services/stripe.service';
 import { prisma } from '../utils/database';
-import { logger } from '../utils/logger';
+import logger from '../utils/logger';
 
 export async function createSubscription(req: Request, res: Response) {
     try {

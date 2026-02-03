@@ -162,7 +162,7 @@ erDiagram
 ## Component Architecture (Frontend)
 
 ```
-web/my-clek-app/
+web/kassy-kube/
 ├── src/
 │   ├── components/
 │   │   ├── auth/

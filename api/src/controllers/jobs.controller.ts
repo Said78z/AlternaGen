@@ -1,10 +1,10 @@
 import { Request, Response } from 'express';
-import prisma from '../utils/database';
+import { prisma } from '../utils/database';
 import logger from '../utils/logger';
 import { CreateJobRequest } from '../types';
 
 /**
- * Get all jobs for current user
+ * Get all jobs for current user (matched jobs)
  * GET /jobs
  */
 export const getJobs = async (req: Request, res: Response): Promise<void> => {
@@ -34,33 +34,27 @@ export const getJobs = async (req: Request, res: Response): Promise<void> => {
         const limit = parseInt(req.query.limit as string) || 20;
         const skip = (page - 1) * limit;
 
-        // Filters
-        const location = req.query.location as string;
-        const company = req.query.company as string;
-
-        const where: any = { userId: user.id };
-        if (location) where.location = { contains: location, mode: 'insensitive' };
-        if (company) where.company = { contains: company, mode: 'insensitive' };
-
-        const [jobs, total] = await Promise.all([
-            prisma.job.findMany({
-                where,
+        const [matches, total] = await Promise.all([
+            prisma.jobMatch.findMany({
+                where: { userId: user.id },
                 skip,
                 take: limit,
-                orderBy: { savedAt: 'desc' },
+                orderBy: { createdAt: 'desc' },
                 include: {
-                    matchScores: {
-                        where: { userId: user.id },
-                        take: 1,
-                    },
+                    jobOffer: true,
                 },
             }),
-            prisma.job.count({ where }),
+            prisma.jobMatch.count({ where: { userId: user.id } }),
         ]);
 
         res.json({
             success: true,
-            data: jobs,
+            data: matches.map(m => ({
+                ...m.jobOffer,
+                matchScore: m.scoreTotal,
+                matchExplanation: m.explanation,
+                matchId: m.id
+            })),
             pagination: {
                 page,
                 limit,
@@ -95,40 +89,32 @@ export const getJobById = async (req: Request, res: Response): Promise<void> => 
             where: { clerkId: req.clerkId },
         });
 
-        if (!user) {
-            res.status(404).json({
-                success: false,
-                error: { code: 'USER_NOT_FOUND', message: 'User not found' },
-            });
-            return;
-        }
-
-        const job = await prisma.job.findFirst({
+        const match = await prisma.jobMatch.findFirst({
             where: {
-                id: req.params.id,
-                userId: user.id,
+                jobOfferId: req.params.id,
+                userId: user?.id,
             },
             include: {
-                matchScores: {
-                    where: { userId: user.id },
-                    take: 1,
-                },
-                applications: {
-                    where: { userId: user.id },
-                    take: 1,
-                },
+                jobOffer: true,
             },
         });
 
-        if (!job) {
+        if (!match) {
             res.status(404).json({
                 success: false,
-                error: { code: 'JOB_NOT_FOUND', message: 'Job not found' },
+                error: { code: 'JOB_NOT_FOUND', message: 'Job not found for this user' },
             });
             return;
         }
 
-        res.json({ success: true, data: job });
+        res.json({
+            success: true,
+            data: {
+                ...match.jobOffer,
+                matchScore: match.scoreTotal,
+                matchExplanation: match.explanation
+            }
+        });
     } catch (error: any) {
         logger.error('Get job error:', error);
         res.status(500).json({
@@ -139,7 +125,7 @@ export const getJobById = async (req: Request, res: Response): Promise<void> => 
 };
 
 /**
- * Save a new job
+ * Save/Create a new job (global offer) and match it to user
  * POST /jobs
  */
 export const createJob = async (req: Request, res: Response): Promise<void> => {
@@ -166,39 +152,43 @@ export const createJob = async (req: Request, res: Response): Promise<void> => {
 
         const data: CreateJobRequest = req.body;
 
-        // Check if URL already exists for this user
-        const existing = await prisma.job.findFirst({
-            where: {
-                url: data.url,
-                userId: user.id,
-            },
-        });
-
-        if (existing) {
-            res.status(400).json({
-                success: false,
-                error: { code: 'JOB_EXISTS', message: 'Job already saved' },
-            });
-            return;
-        }
-
-        const job = await prisma.job.create({
-            data: {
-                userId: user.id,
+        // Upsert JobOffer
+        const jobOffer = await prisma.jobOffer.upsert({
+            where: { url: data.url },
+            update: {
                 title: data.title,
                 company: data.company,
                 location: data.location,
                 description: data.description,
-                requirements: data.requirements,
-                url: data.url,
-                source: data.source || 'Manual',
             },
+            create: {
+                url: data.url,
+                title: data.title,
+                company: data.company,
+                location: data.location,
+                description: data.description,
+                source: data.source || 'MANUAL',
+            }
         });
 
-        // TODO: Calculate match score asynchronously
-        // For now, we'll add it in the matching service
+        // Create initial Match (score 100 for manual/saved)
+        const match = await prisma.jobMatch.upsert({
+            where: {
+                userId_jobOfferId: {
+                    userId: user.id,
+                    jobOfferId: jobOffer.id
+                }
+            },
+            update: {},
+            create: {
+                userId: user.id,
+                jobOfferId: jobOffer.id,
+                scoreTotal: 100,
+                explanation: 'Manually saved'
+            }
+        });
 
-        res.status(201).json({ success: true, data: job });
+        res.status(201).json({ success: true, data: { ...jobOffer, matchId: match.id } });
     } catch (error: any) {
         logger.error('Create job error:', error);
         res.status(500).json({
@@ -209,7 +199,7 @@ export const createJob = async (req: Request, res: Response): Promise<void> => {
 };
 
 /**
- * Delete a job
+ * Delete a job (unmatch)
  * DELETE /jobs/:id
  */
 export const deleteJob = async (req: Request, res: Response): Promise<void> => {
@@ -226,34 +216,14 @@ export const deleteJob = async (req: Request, res: Response): Promise<void> => {
             where: { clerkId: req.clerkId },
         });
 
-        if (!user) {
-            res.status(404).json({
-                success: false,
-                error: { code: 'USER_NOT_FOUND', message: 'User not found' },
-            });
-            return;
-        }
-
-        const job = await prisma.job.findFirst({
+        await prisma.jobMatch.deleteMany({
             where: {
-                id: req.params.id,
-                userId: user.id,
+                jobOfferId: req.params.id,
+                userId: user?.id,
             },
         });
 
-        if (!job) {
-            res.status(404).json({
-                success: false,
-                error: { code: 'JOB_NOT_FOUND', message: 'Job not found' },
-            });
-            return;
-        }
-
-        await prisma.job.delete({
-            where: { id: job.id },
-        });
-
-        res.json({ success: true, message: 'Job deleted successfully' });
+        res.json({ success: true, message: 'Job unmatched successfully' });
     } catch (error: any) {
         logger.error('Delete job error:', error);
         res.status(500).json({

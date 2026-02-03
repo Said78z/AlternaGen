@@ -1,0 +1,74 @@
+{
+    "name": "Kassy's Kube AI Onboarding",
+    "nodes": [
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "onboarding-webhook",
+                "options": {}
+            },
+            "id": "e5d6a7b8-c9d0-1e2f-3a4b-5c6d7e8f90a1",
+            "name": "Webhook Onboarding",
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 1,
+            "position": [
+                250,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "model": "gpt-4o",
+                "prompt": "=Welcome the new user to Kassy's Kube! User details: {{ $node[\"Webhook Onboarding\"].json[\"body\"] }}",
+                "options": {}
+            },
+            "id": "f1a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c",
+            "name": "OpenAI Welcome Agent",
+            "type": "n8n-nodes-base.openAi",
+            "typeVersion": 1,
+            "position": [
+                450,
+                300
+            ]
+        },
+        {
+            "parameters": {
+                "resource": "message",
+                "channel": "onboarding-alerts",
+                "text": "=🚀 Champion Onboarded: {{ $node[\"Webhook Onboarding\"].json[\"body\"][\"email\"] }}\nAI Greeting: {{ $node[\"OpenAI Welcome Agent\"].json[\"text\"] }}"
+            },
+            "id": "a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d",
+            "name": "Slack Alert",
+            "type": "n8n-nodes-base.slack",
+            "typeVersion": 1,
+            "position": [
+                650,
+                300
+            ]
+        }
+    ],
+    "connections": {
+        "Webhook Onboarding": {
+            "main": [
+                [
+                    {
+                        "node": "OpenAI Welcome Agent",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "OpenAI Welcome Agent": {
+            "main": [
+                [
+                    {
+                        "node": "Slack Alert",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}

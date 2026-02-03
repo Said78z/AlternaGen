@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import prisma from '../utils/database';
+import { prisma } from '../utils/database';
 import logger from '../utils/logger';
 import { CreateProfileRequest, UpdateProfileRequest } from '../types';
 
@@ -85,14 +85,13 @@ export const createProfile = async (req: Request, res: Response): Promise<void> 
 
         const data: CreateProfileRequest = req.body;
 
-        const profile = await prisma.profile.create({
+        const profile = await prisma.userProfile.create({
             data: {
                 userId: user.id,
                 educationLevel: data.educationLevel,
                 fieldOfStudy: data.fieldOfStudy,
                 skills: data.skills || [],
                 preferredLocations: data.preferredLocations || [],
-                preferredSectors: data.preferredSectors || [],
                 bio: data.bio,
             },
         });
@@ -136,14 +135,13 @@ export const updateProfile = async (req: Request, res: Response): Promise<void> 
 
         const data: UpdateProfileRequest = req.body;
 
-        const profile = await prisma.profile.update({
+        const profile = await prisma.userProfile.update({
             where: { userId: user.id },
             data: {
                 ...(data.educationLevel && { educationLevel: data.educationLevel }),
                 ...(data.fieldOfStudy && { fieldOfStudy: data.fieldOfStudy }),
                 ...(data.skills && { skills: data.skills }),
                 ...(data.preferredLocations && { preferredLocations: data.preferredLocations }),
-                ...(data.preferredSectors && { preferredSectors: data.preferredSectors }),
                 ...(data.bio !== undefined && { bio: data.bio }),
             },
         });

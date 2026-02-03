@@ -7,50 +7,53 @@ on:
     branches: [ main, develop ]
 
 jobs:
-  lint-and-test:
+  build-and-test:
+    name: Build & Test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Install Dependencies
-        run: |
-          cd web/kassy-kube && npm install
-          cd ../../api && npm install
-      - name: Security Audit (DevSecOps)
-        run: |
-          cd web/kassy-kube && npm audit --audit-level=high
-          cd ../../api && npm audit --audit-level=high
-      - name: Lint
-        run: |
-          cd web/kassy-kube && npm run lint
-      - name: Build
-        run: |
-          cd web/kassy-kube && npm run build
-          cd ../../api && npm run build
+          cache: 'npm'
+          cache-dependency-path: |
+            web/kassy-kube/package-lock.json
+            api/package-lock.json
 
-  deploy-dev:
-    needs: lint-and-test
-    if: github.ref == 'refs/heads/develop'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Deploy to Dev
-        run: echo "Deploying to Dev environment..."
+      - name: Install & Prisma Generate
+        run: |
+          cd api && npm ci && npx prisma generate
+          cd ../web/kassy-kube && npm ci
 
-  deploy-preprod:
-    needs: lint-and-test
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Deploy to Preprod
-        run: echo "Deploying to Preprod environment..."
+      - name: Security & Lint
+        run: |
+          cd api && npm audit --audit-level=high && npm run lint
+          cd ../web/kassy-kube && npm audit --audit-level=high && npm run lint
 
-  deploy-prod:
-    needs: deploy-preprod
+      - name: Build Web & API
+        run: |
+          cd api && npm run build
+          cd ../web/kassy-kube && npm run build
+
+  deploy:
+    name: Deploy
+    needs: build-and-test
     runs-on: ubuntu-latest
-    environment: production
+    if: github.event_name == 'push'
     steps:
-      - name: Deploy to Production
-        run: echo "Deploying to Production environment..."
+      - name: Determine Environment
+        id: env
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "target=production" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.ref }}" == "refs/heads/develop" ]]; then
+            echo "target=development" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Exec Deployment
+        run: |
+          echo "🚀 Deploying to ${{ steps.env.outputs.target }}..."
+          # Add actual deploy commands here (e.g. terraform apply, kubectl apply)
+

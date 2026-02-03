@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { generateCV, generateCoverLetter, CVInput, CoverLetterInput } from '../services/openai.service';
 import { prisma } from '../utils/database';
-import { logger } from '../utils/logger';
+import logger from '../utils/logger';
 
 // Check and deduct credits
 async function checkAndDeductCredits(userId: string): Promise<boolean> {
