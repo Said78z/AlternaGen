@@ -1,0 +1,49 @@
+name: Multi-Env Deployment
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Dependencies
+        run: |
+          cd web/kassy-kube && npm install
+          cd ../../api && npm install
+      - name: Build
+        run: |
+          cd web/kassy-kube && npm run build
+          cd ../../api && npm run build
+
+  deploy-dev:
+    needs: lint-and-test
+    if: github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to Dev
+        run: echo "Deploying to Dev environment..."
+
+  deploy-preprod:
+    needs: lint-and-test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to Preprod
+        run: echo "Deploying to Preprod environment..."
+
+  deploy-prod:
+    needs: deploy-preprod
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Deploy to Production
+        run: echo "Deploying to Production environment..."
