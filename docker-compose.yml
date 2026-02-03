@@ -23,7 +23,7 @@ services:
     networks:
       - altergen-internal
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -106,6 +106,30 @@ services:
     networks:
       - altergen-public
       - altergen-internal
+    command: npm run dev
+
+  # Frontend Web App (Kassy-Kube)
+  web:
+    build:
+      context: ./web/kassy-kube
+      dockerfile: Dockerfile
+      target: development
+    container_name: altergen-web
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    environment:
+      VITE_API_URL: http://localhost:3001
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./web/kassy-kube:/app
+      - /app/node_modules
+    depends_on:
+      - api
+    networks:
+      - altergen-public
     command: npm run dev
 
   # Monitoring (CERT-FR: Keep restricted)

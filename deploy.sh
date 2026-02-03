@@ -44,7 +44,7 @@ echo -e "${GREEN}✓ Images pulled${NC}"
 
 echo -e "${BLUE}Step 3/6: Building/Updating services (Zero-Downtime focus)...${NC}"
 # hardening: ensure we pull/rebuild to apply latest security patches
-$COMPOSE_CMD up -d --no-deps --build api
+$COMPOSE_CMD up -d --no-deps --build api web
 echo -e "${GREEN}✓ Services updated${NC}"
 
 echo -e "${BLUE}Step 4/6: Cleaning up old images...${NC}"
