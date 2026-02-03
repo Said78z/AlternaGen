@@ -42,8 +42,8 @@ export const calculateMatch = async (req: Request, res: Response): Promise<void>
         const result = await calculateMatchScore(user.id, jobId);
 
         res.json({ success: true, data: result });
-    } catch (error) {
-        logger.error('Calculate match error:', error);
+    } catch (error: any) {
+        logger.error({ error }, 'Calculate match error:');
         res.status(500).json({
             success: false,
             error: { code: 'SERVER_ERROR', message: 'Failed to calculate match' },
@@ -89,8 +89,8 @@ export const getRecommendations = async (req: Request, res: Response): Promise<v
         });
 
         res.json({ success: true, data: recommendations });
-    } catch (error) {
-        logger.error('Get recommendations error:', error);
+    } catch (error: any) {
+        logger.error({ error }, 'Get recommendations error:');
         res.status(500).json({
             success: false,
             error: { code: 'SERVER_ERROR', message: 'Failed to fetch recommendations' },

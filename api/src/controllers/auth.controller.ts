@@ -46,8 +46,8 @@ export const handleClerkWebhook = async (req: Request, res: Response): Promise<v
                 'svix-timestamp': svix_timestamp,
                 'svix-signature': svix_signature,
             }) as ClerkWebhookEvent;
-        } catch (err) {
-            logger.error('Webhook verification failed:', err);
+        } catch (error: any) {
+            logger.error({ error }, 'Webhook verification failed:');
             res.status(400).json({ error: 'Webhook verification failed' });
             return;
         }
@@ -72,8 +72,8 @@ export const handleClerkWebhook = async (req: Request, res: Response): Promise<v
         }
 
         res.status(200).json({ received: true });
-    } catch (error) {
-        logger.error('Webhook handler error:', error);
+    } catch (error: any) {
+        logger.error({ error }, 'Webhook handler error:');
         res.status(500).json({ error: 'Internal server error' });
     }
 };

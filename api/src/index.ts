@@ -52,7 +52,7 @@ app.get('/health', async (_req, res) => {
             timestamp: new Date().toISOString(),
             database: 'connected'
         });
-    } catch (error) {
+    } catch (error: any) {
         logger.error({ error }, 'Health check failed');
         res.status(503).json({
             status: 'error',

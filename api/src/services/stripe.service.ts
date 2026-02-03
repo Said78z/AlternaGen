@@ -71,15 +71,15 @@ export async function handleWebhook(payload: Buffer, signature: string): Promise
                         stripeSubscriptionId: subscriptionId,
                         stripeCustomerId: session.customer as string,
                         planCode: 'PRO', // Assuming only PRO is sold via this flow for now
-                        status: stripeSub.status,
-                        currentPeriodEnd: new Date(stripeSub.current_period_end * 1000)
+                        status: (stripeSub as any).status,
+                        currentPeriodEnd: new Date((stripeSub as any).current_period_end * 1000)
                     },
                     update: {
                         stripeSubscriptionId: subscriptionId,
                         stripeCustomerId: session.customer as string,
                         planCode: 'PRO',
-                        status: stripeSub.status,
-                        currentPeriodEnd: new Date(stripeSub.current_period_end * 1000)
+                        status: (stripeSub as any).status,
+                        currentPeriodEnd: new Date((stripeSub as any).current_period_end * 1000)
                     }
                 });
                 console.log(`[Stripe] Subscription created/updated for user ${userId}`);
@@ -93,7 +93,7 @@ export async function handleWebhook(payload: Buffer, signature: string): Promise
                 where: { stripeSubscriptionId: sub.id },
                 data: {
                     status: sub.status,
-                    currentPeriodEnd: new Date(sub.current_period_end * 1000)
+                    currentPeriodEnd: new Date((sub as any).current_period_end * 1000)
                 }
             });
             break;

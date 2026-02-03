@@ -89,12 +89,12 @@ export async function calculateMatchScore(
 ): Promise<MatchResult> {
     try {
         // Get user profile
-        const profile = await prisma.profile.findUnique({
+        const profile = await prisma.userProfile.findUnique({
             where: { userId },
         });
 
         // Get job
-        const job = await prisma.job.findUnique({
+        const job = await prisma.jobOffer.findUnique({
             where: { id: jobId },
         });
 
@@ -106,7 +106,7 @@ export async function calculateMatchScore(
         }
 
         // Calculate component scores
-        const skillsScore = calculateSkillsScore(profile.skills, job.requirements || undefined);
+        const skillsScore = calculateSkillsScore(profile.skills, job.description || undefined);
         const locationScore = calculateLocationScore(
             profile.preferredLocations,
             job.location || undefined
@@ -132,28 +132,30 @@ export async function calculateMatchScore(
         );
 
         // Save to database
-        await prisma.matchScore.upsert({
+        await prisma.jobMatch.upsert({
             where: {
-                userId_jobId: {
+                userId_jobOfferId: {
                     userId,
-                    jobId,
+                    jobOfferId: jobId,
                 },
             },
             update: {
-                score: finalScore,
+                scoreTotal: finalScore,
                 explanation,
+                scoreBreakdown: { skillsScore, locationScore, seniorityScore } as any
             },
             create: {
                 userId,
-                jobId,
-                score: finalScore,
+                jobOfferId: jobId,
+                scoreTotal: finalScore,
                 explanation,
+                scoreBreakdown: { skillsScore, locationScore, seniorityScore } as any
             },
         });
 
         return { score: finalScore, explanation };
-    } catch (error) {
-        logger.error('Calculate match score error:', error);
+    } catch (error: any) {
+        logger.error({ error }, 'Calculate match score error:');
         return {
             score: 0,
             explanation: 'Error calculating match score',
@@ -213,16 +215,14 @@ function generateExplanation(
  */
 export async function calculateAllMatchScores(userId: string): Promise<void> {
     try {
-        const jobs = await prisma.job.findMany({
-            where: { userId },
-        });
+        const jobs = await prisma.jobOffer.findMany();
 
         for (const job of jobs) {
             await calculateMatchScore(userId, job.id);
         }
 
         logger.info(`Calculated match scores for ${jobs.length} jobs (user: ${userId})`);
-    } catch (error) {
-        logger.error('Batch calculate match scores error:', error);
+    } catch (error: any) {
+        logger.error({ error }, 'Batch calculate match scores error:');
     }
 }
