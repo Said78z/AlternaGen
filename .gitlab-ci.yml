@@ -9,7 +9,7 @@ variables:
 
 lint:
   stage: lint
-  image: node:18
+  image: node:20
   script:
     - cd api && npm ci && npm run lint
     - cd ../web/kassy-kube && npm ci && npm run lint
@@ -17,7 +17,7 @@ lint:
 
 build:
   stage: build
-  image: node:18
+  image: node:20
   script:
     - cd api && npm ci && npm run build
     - cd ../web/kassy-kube && npm ci && npm run build
@@ -28,13 +28,13 @@ build:
 
 test_unit:
   stage: test
-  image: node:18
+  image: node:20
   script:
     - cd api && npm ci && npm test
 
 deploy_vercel:
   stage: deploy
-  image: node:18
+  image: node:20
   only:
     - main
   script:
