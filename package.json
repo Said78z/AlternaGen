@@ -1,5 +1,9 @@
 {
     "name": "alternagen-mvp",
+    "workspaces": [
+        "api",
+        "web/kassy-kube"
+    ],
     "version": "1.0.0",
     "description": "AlternaGen - AI Agent for Alternance Hunting",
     "main": "src/index.ts",
@@ -20,6 +24,7 @@
         "apify-client": "^2.9.5",
         "dotenv": "^16.4.5",
         "openai": "^4.56.0",
+        "uuid": "^8.3.2",
         "zod": "^3.23.8"
     },
     "devDependencies": {
