@@ -1,5 +1,12 @@
 import prisma from '../utils/database';
-import { TaskStatus } from '@prisma/client';
+// Use string literals to avoid build issues if Prisma client is not fully generated
+type TaskStatusType = 'QUEUED' | 'RUNNING' | 'SUCCESS' | 'FAILED';
+const TaskStatus = {
+    QUEUED: 'QUEUED' as any,
+    RUNNING: 'RUNNING' as any,
+    SUCCESS: 'SUCCESS' as any,
+    FAILED: 'FAILED' as any,
+};
 
 export type TaskType = 'FETCH_OFFERS' | 'RUN_MATCH' | 'GENERATE_CV' | 'DAILY_BRIEF';
 

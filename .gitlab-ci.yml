@@ -2,6 +2,7 @@ stages:
   - lint
   - build
   - test
+  - deploy
 
 variables:
   NODE_ENV: "test"
@@ -11,7 +12,7 @@ lint:
   image: node:18
   script:
     - cd api && npm ci && npm run lint
-    - cd ../web && npm ci && npm run lint
+    - cd ../web/kassy-kube && npm ci && npm run lint
   allow_failure: true
 
 build:
@@ -19,15 +20,23 @@ build:
   image: node:18
   script:
     - cd api && npm ci && npm run build
-    - cd ../web && npm ci && npm run build
+    - cd ../web/kassy-kube && npm ci && npm run build
   artifacts:
     paths:
       - api/dist/
-      - web/.next/
+      - web/kassy-kube/dist/
 
 test_unit:
   stage: test
   image: node:18
   script:
     - cd api && npm ci && npm test
-    # Web tests skipped for now as they require fuller environment setup in this MVP
+
+deploy_vercel:
+  stage: deploy
+  image: node:18
+  only:
+    - main
+  script:
+    - npm install -g vercel
+    - vercel --token $VERCEL_TOKEN --prod --yes

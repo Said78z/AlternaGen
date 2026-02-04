@@ -49,7 +49,7 @@ export const getJobs = async (req: Request, res: Response): Promise<void> => {
 
         res.json({
             success: true,
-            data: matches.map(m => ({
+            data: matches.map((m: any) => ({
                 ...m.jobOffer,
                 matchScore: m.scoreTotal,
                 matchExplanation: m.explanation,
