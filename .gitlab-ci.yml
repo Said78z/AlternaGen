@@ -15,6 +15,7 @@ lint:
     - cd ../web/kassy-kube && npm ci && npm run lint
   allow_failure: true
 
+
 build:
   stage: build
   image: node:20
