@@ -17,11 +17,11 @@
     "rewrites": [
         {
             "source": "/api/(.*)",
-            "destination": "/api/src/index.ts"
+            "destination": "api/src/index.ts"
         },
         {
             "source": "/(.*)",
-            "destination": "/web/kassy-kube/$1"
+            "destination": "web/kassy-kube/$1"
         }
     ]
 }

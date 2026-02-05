@@ -9,6 +9,7 @@
     "main": "src/index.ts",
     "scripts": {
         "start": "ts-node src/index.ts",
+        "build": "npm run build --workspace=web/kassy-kube",
         "night-shift": "ts-node src/scripts/night_shift.ts",
         "test": "echo \"Error: no test specified\" && exit 1"
     },
