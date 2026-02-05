@@ -3,7 +3,7 @@
     "name": "alternagen-monorepo",
     "builds": [
         {
-            "src": "api/src/index.ts",
+            "src": "api/package.json",
             "use": "@vercel/node"
         },
         {
@@ -14,14 +14,14 @@
             }
         }
     ],
-    "routes": [
+    "rewrites": [
         {
-            "src": "/api/(.*)",
-            "dest": "api/src/index.ts"
+            "source": "/api/(.*)",
+            "destination": "/api/src/index.ts"
         },
         {
-            "src": "/(.*)",
-            "dest": "web/kassy-kube/$1"
+            "source": "/(.*)",
+            "destination": "/web/kassy-kube/$1"
         }
     ]
 }

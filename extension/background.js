@@ -9,7 +9,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
 async function saveJob(jobData) {
     try {
-        const response = await fetch('http://localhost:3000/api/extension/save-job', {
+        const response = await fetch('https://webeska.agency/api/extension/save-job', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
