@@ -6,6 +6,8 @@ AlternaGen is a SaaS platform that helps students find apprenticeship opportunit
 
 ## 🚀 Quick Start
 
+
+
 ### Prerequisites
 - Docker & Docker Compose
 - Node.js 18+ (for local development)
