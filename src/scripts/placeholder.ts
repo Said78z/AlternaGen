@@ -1,2 +1,6 @@
 // This file exists to satisfy the tsconfig.json include pattern "src/**/*"
-export { };
+{
+    "scripts": {
+        "build": "[my-framework] build --output public"
+    }
+}
