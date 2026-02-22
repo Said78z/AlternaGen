@@ -33,11 +33,7 @@ export async function POST(
     }
     
     const resendKey = process.env.RESEND_API_KEY;
-    const fromEmail = process.env.RESEND_FROM_EMAIL;
-    
-    if (resendKey && !fromEmail) {
-      return NextResponse.json({ error: 'RESEND_FROM_EMAIL is not configured' }, { status: 500 });
-    }
+    const fromEmail = process.env.RESEND_FROM_EMAIL || 'noreply@audit-express.app';
     const scoreBreakdown = audit.scoreBreakdown as Record<string, number>;
     const recommendations = audit.recommendations as Array<{ title: string; description: string; action: string }>;
     
@@ -67,7 +63,7 @@ export async function POST(
     } else {
       const resend = new Resend(resendKey);
       await resend.emails.send({
-        from: fromEmail!,
+        from: fromEmail,
         to: audit.email,
         subject: 'Votre rapport Audit Express Agricole',
         html: emailHtml,
