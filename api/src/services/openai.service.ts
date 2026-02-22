@@ -62,6 +62,81 @@ Format: Markdown professionnel avec sections claires. Sois concis et impactant. 
     return completion.choices[0].message.content || '';
 }
 
+export interface LinkedInPostInput {
+    sector: string;
+    targetAudience: string;
+    writingStyle: 'concise' | 'expert' | 'storytelling';
+    objective: 'visibility' | 'engagement' | 'awareness';
+    baseText?: string;
+}
+
+export interface LinkedInPostVariants {
+    variant1: string;
+    variant2: string;
+    variant3: string;
+}
+
+export async function generateLinkedInPost(input: LinkedInPostInput): Promise<LinkedInPostVariants> {
+    const styleMap = {
+        concise: 'concis et percutant',
+        expert: 'professionnel et expert',
+        storytelling: 'storytelling narratif',
+    };
+
+    const objectiveMap = {
+        visibility: 'maximiser la visibilité organique',
+        engagement: 'générer un maximum d\'engagement (likes, commentaires, partages)',
+        awareness: 'renforcer la notoriété professionnelle',
+    };
+
+    const baseTextSection = input.baseText
+        ? `\n\nTexte de base fourni par l'utilisateur (à réinterpréter et enrichir) :\n"${input.baseText}"`
+        : '';
+
+    const prompt = `Tu es un expert en marketing de contenu LinkedIn et en personal branding professionnel.
+
+Génère TROIS variantes d'un post LinkedIn optimisé pour :
+- Secteur / spécialisation : ${input.sector}
+- Audience cible : ${input.targetAudience}
+- Style d'écriture souhaité : ${styleMap[input.writingStyle]}
+- Objectif principal : ${objectiveMap[input.objective]}${baseTextSection}
+
+Chaque variante doit respecter la structure AIDA (Attention, Interest, Desire, Action) et inclure :
+1. Une accroche forte (première ligne percutante)
+2. Un corps engageant (storytelling ou éducatif selon la variante)
+3. Un appel à l'action clair et percutant
+4. Des mots-clés SEO LinkedIn pertinents pour le secteur
+5. Des hashtags adaptés (3-5 maximum)
+
+Contraintes strictes :
+- Variante 1 – Concise et percutante : 80 à 100 mots maximum
+- Variante 2 – Professionnelle et experte : 150 à 200 mots
+- Variante 3 – Longue, orientée storytelling : 250 à 300 mots
+
+Réponds UNIQUEMENT au format JSON suivant, sans texte avant ou après :
+{
+  "variant1": "...",
+  "variant2": "...",
+  "variant3": "..."
+}`;
+
+    const completion = await openai.chat.completions.create({
+        model: 'gpt-4',
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.8,
+        max_tokens: 2000,
+    });
+
+    const raw = completion.choices[0].message.content || '';
+    let parsed: LinkedInPostVariants;
+    try {
+        parsed = JSON.parse(raw) as LinkedInPostVariants;
+    } catch {
+        throw new Error('LinkedIn post generation returned malformed JSON from AI model');
+    }
+    return parsed;
+}
+
 export async function generateCoverLetter(input: CoverLetterInput): Promise<string> {
     const prompt = `Tu es un expert en rédaction de lettres de motivation pour étudiants français cherchant une alternance.
 
