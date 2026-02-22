@@ -62,6 +62,76 @@ Format: Markdown professionnel avec sections claires. Sois concis et impactant. 
     return completion.choices[0].message.content || '';
 }
 
+export interface LinkedInPostInput {
+    industry: string;
+    targetAudience: string;
+    writingStyle: 'concise' | 'expert' | 'storytelling';
+    objective: 'visibility' | 'engagement' | 'awareness';
+    topic?: string;
+    baseText?: string;
+}
+
+export interface LinkedInPostVariants {
+    variant1: string; // Concise (80-100 words)
+    variant2: string; // Professional/expert (150-200 words)
+    variant3: string; // Long storytelling (250-300 words)
+}
+
+export async function generateLinkedInPost(input: LinkedInPostInput): Promise<LinkedInPostVariants> {
+    const topicSection = input.baseText
+        ? `Texte de base fourni: "${input.baseText}"`
+        : input.topic
+        ? `Thématique: ${input.topic}`
+        : '';
+
+    const objectiveMap: Record<string, string> = {
+        visibility: 'visibilité organique',
+        engagement: 'engagement (likes, commentaires, partages)',
+        awareness: 'notoriété de marque',
+    };
+
+    const styleMap: Record<string, string> = {
+        concise: 'concis et percutant',
+        expert: 'professionnel et expert',
+        storytelling: 'storytelling narratif',
+    };
+
+    const prompt = `Tu es un expert en marketing LinkedIn et en création de contenu professionnel.
+
+Génère trois variantes d'un post LinkedIn optimisé pour:
+- Secteur / spécialisation: ${input.industry}
+- Audience cible: ${input.targetAudience}
+- Style d'écriture souhaité: ${styleMap[input.writingStyle]}
+- Objectif principal: ${objectiveMap[input.objective]}
+${topicSection ? `- ${topicSection}` : ''}
+
+Respecte la structure AIDA (Attention, Interest, Desire, Action) pour chaque variante.
+Chaque post doit contenir: une accroche forte, un corps (storytelling ou éducatif) et un appel à l'action percutant.
+Intègre des mots-clés SEO pertinents pour LinkedIn afin d'améliorer la visibilité organique.
+Adapte le ton à l'audience cible et assure la cohérence entre les variantes.
+
+Réponds UNIQUEMENT au format JSON valide suivant, sans texte supplémentaire:
+{
+  "variant1": "<Variante 1 – Concise et percutante, 80-100 mots>",
+  "variant2": "<Variante 2 – Professionnelle et experte, 150-200 mots>",
+  "variant3": "<Variante 3 – Longue, orientée storytelling, 250-300 mots>"
+}`;
+
+    const completion = await openai.chat.completions.create({
+        model: 'gpt-4',
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.8,
+        max_tokens: 2000,
+    });
+
+    const content = completion.choices[0].message.content || '{}';
+    try {
+        return JSON.parse(content) as LinkedInPostVariants;
+    } catch {
+        throw new Error('Failed to parse LinkedIn post variants from AI response');
+    }
+}
+
 export async function generateCoverLetter(input: CoverLetterInput): Promise<string> {
     const prompt = `Tu es un expert en rédaction de lettres de motivation pour étudiants français cherchant une alternance.
 
