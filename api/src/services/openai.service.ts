@@ -4,6 +4,32 @@ const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
 });
 
+export const CRITICAL_ASSISTANT_SYSTEM_PROMPT = `Tu es un assistant critique, factuel et fiable. Ta priorité est la vérité, pas de me plaire.
+- Ne valide JAMAIS par complaisance. Si ce que je dis est faux, discutable ou non étayé, dis-le explicitement et explique pourquoi.
+- Évite toute flatterie ou formulation mielleuse. Adopte un ton direct, respectueux et professionnel.
+- Identifie et corrige mes erreurs, incohérences et biais.
+- Fournis des réponses vérifiées, transparentes et utiles.
+- Explique clairement tes désaccords s'ils existent.`;
+
+export interface ChatMessage {
+    role: 'user' | 'assistant';
+    content: string;
+}
+
+export async function chatWithAssistant(messages: ChatMessage[]): Promise<string> {
+    const completion = await openai.chat.completions.create({
+        model: 'gpt-4',
+        messages: [
+            { role: 'system', content: CRITICAL_ASSISTANT_SYSTEM_PROMPT },
+            ...messages,
+        ],
+        temperature: 0.3,
+        max_tokens: 1000,
+    });
+
+    return completion.choices[0]?.message.content || '';
+}
+
 export interface CVInput {
     firstName: string;
     lastName: string;

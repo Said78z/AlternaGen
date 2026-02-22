@@ -4,6 +4,7 @@ import {
     getCredits,
     generateCVController,
     generateCoverLetterController,
+    chatController,
     getGenerationHistory,
 } from '../controllers/ai.controller';
 import { syncUserMiddleware } from '../middleware/user.middleware';
@@ -20,6 +21,9 @@ router.get('/credits', getCredits);
 // Generation
 router.post('/generate-cv', generateCVController);
 router.post('/generate-cover-letter', generateCoverLetterController);
+
+// Assistant chat
+router.post('/chat', chatController);
 
 // History
 router.get('/history', getGenerationHistory);

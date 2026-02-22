@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { generateCV, generateCoverLetter, CVInput, CoverLetterInput } from '../services/openai.service';
+import { generateCV, generateCoverLetter, chatWithAssistant, CVInput, CoverLetterInput, ChatMessage } from '../services/openai.service';
 import { prisma } from '../utils/database';
 import logger from '../utils/logger';
 
@@ -144,6 +144,30 @@ export async function generateCoverLetterController(req: Request, res: Response)
     } catch (error: any) {
         logger.error('Generate cover letter error:', error);
         res.status(500).json({ error: 'Failed to generate cover letter' });
+    }
+}
+
+export async function chatController(req: Request, res: Response) {
+    try {
+        const { messages } = req.body as { messages: ChatMessage[] };
+
+        if (!Array.isArray(messages) || messages.length === 0) {
+            return res.status(400).json({ error: 'messages array is required' });
+        }
+
+        const validRoles = new Set(['user', 'assistant']);
+        const isValid = messages.every(
+            (m) => m && typeof m.content === 'string' && validRoles.has(m.role)
+        );
+        if (!isValid) {
+            return res.status(400).json({ error: 'Each message must have a role of "user" or "assistant" and a string content' });
+        }
+
+        const reply = await chatWithAssistant(messages);
+        res.json({ reply });
+    } catch (error: any) {
+        logger.error('Chat error:', error);
+        res.status(500).json({ error: 'Failed to process chat' });
     }
 }
 
