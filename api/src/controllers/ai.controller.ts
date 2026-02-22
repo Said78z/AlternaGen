@@ -1,5 +1,14 @@
 import { Request, Response } from 'express';
-import { generateCV, generateCoverLetter, CVInput, CoverLetterInput } from '../services/openai.service';
+import {
+    generateCV,
+    generateCoverLetter,
+    optimizePrompt,
+    generateLinkedInPost,
+    CVInput,
+    CoverLetterInput,
+    PromptOptimizerInput,
+    LinkedInPostInput,
+} from '../services/openai.service';
 import { prisma } from '../utils/database';
 import logger from '../utils/logger';
 
@@ -162,5 +171,95 @@ export async function getGenerationHistory(req: Request, res: Response) {
     } catch (error: any) {
         logger.error('Get generation history error:', error);
         res.status(500).json({ error: 'Failed to get generation history' });
+    }
+}
+
+export async function optimizePromptController(req: Request, res: Response) {
+    try {
+        const userId = req.userId!;
+        const input: PromptOptimizerInput = req.body;
+
+        if (!input.userRequest || typeof input.userRequest !== 'string') {
+            return res.status(400).json({ error: 'userRequest is required' });
+        }
+        if (!['detailed', 'basic'].includes(input.mode)) {
+            return res.status(400).json({ error: 'mode must be "detailed" or "basic"' });
+        }
+
+        const hasCredits = await checkAndDeductCredits(userId);
+        if (!hasCredits) {
+            return res.status(402).json({
+                error: 'No credits remaining',
+                message: 'Upgrade to Pro for unlimited generations',
+            });
+        }
+
+        const result = await optimizePrompt(input);
+
+        await prisma.generation.create({
+            data: {
+                userId,
+                type: 'PROMPT_OPTIMIZER',
+                input: JSON.stringify(input),
+                output: JSON.stringify(result),
+            },
+        });
+
+        res.json(result);
+    } catch (error: any) {
+        logger.error('Optimize prompt error:', error);
+        res.status(500).json({ error: 'Failed to optimize prompt' });
+    }
+}
+
+export async function generateLinkedInPostController(req: Request, res: Response) {
+    try {
+        const userId = req.userId!;
+        const input: LinkedInPostInput = req.body;
+
+        const validTypes = ['actualité', 'tutoriel', 'lead-gen'];
+        const validTechnicite = ['débutant', 'intermédiaire', 'expert'];
+        const validLangues = ['français', 'anglais'];
+        const validTons = ['authentique', 'expert', 'storytelling'];
+
+        if (!validTypes.includes(input.typePost)) {
+            return res.status(400).json({ error: 'typePost must be one of: actualité, tutoriel, lead-gen' });
+        }
+        if (!input.sujet || typeof input.sujet !== 'string') {
+            return res.status(400).json({ error: 'sujet is required' });
+        }
+        if (!validTechnicite.includes(input.technicite)) {
+            return res.status(400).json({ error: 'technicite must be one of: débutant, intermédiaire, expert' });
+        }
+        if (!validLangues.includes(input.langue)) {
+            return res.status(400).json({ error: 'langue must be one of: français, anglais' });
+        }
+        if (!validTons.includes(input.ton)) {
+            return res.status(400).json({ error: 'ton must be one of: authentique, expert, storytelling' });
+        }
+
+        const hasCredits = await checkAndDeductCredits(userId);
+        if (!hasCredits) {
+            return res.status(402).json({
+                error: 'No credits remaining',
+                message: 'Upgrade to Pro for unlimited generations',
+            });
+        }
+
+        const post = await generateLinkedInPost(input);
+
+        await prisma.generation.create({
+            data: {
+                userId,
+                type: 'LINKEDIN_POST',
+                input: JSON.stringify(input),
+                output: post,
+            },
+        });
+
+        res.json({ post });
+    } catch (error: any) {
+        logger.error('Generate LinkedIn post error:', error);
+        res.status(500).json({ error: 'Failed to generate LinkedIn post' });
     }
 }
