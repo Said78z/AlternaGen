@@ -1,8 +1,0 @@
-Metadata-Version: 2.4
-Name: alternagen
-Version: 0.1.0
-Summary: AlternaGen – AI-powered alternance hunting utilities
-Requires-Python: >=3.12
-Provides-Extra: dev
-Requires-Dist: pytest>=9; extra == "dev"
-Requires-Dist: pytest-cov>=7; extra == "dev"
