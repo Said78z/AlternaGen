@@ -20,6 +20,7 @@ import aiRoutes from './routes/ai.routes';
 import stripeRoutes from './routes/stripe.routes';
 import agentRoutes from './routes/agent.routes';
 import automationRoutes from './routes/automation.routes';
+import visionRoutes from './routes/vision.routes';
 
 // Load environment variables
 dotenv.config();
@@ -104,6 +105,7 @@ app.use('/ai', aiRoutes);
 app.use('/stripe', stripeRoutes);
 app.use('/agent', agentRoutes);
 app.use('/automation', automationRoutes);
+app.use('/vision', visionRoutes);
 
 // 404 handler
 app.use(notFoundHandler);

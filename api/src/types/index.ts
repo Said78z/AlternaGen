@@ -120,6 +120,22 @@ export interface PaginatedResponse<T> {
     };
 }
 
+export interface CreateVisionRequest {
+    dreams?: string;
+    constraints?: string;
+    preferredIndustries?: string[];
+    targetRoles: string[];
+    alterGoal?: string;
+}
+
+export interface UpdateVisionRequest {
+    dreams?: string;
+    constraints?: string;
+    preferredIndustries?: string[];
+    targetRoles?: string[];
+    alterGoal?: string;
+}
+
 // Clerk webhook types
 export interface ClerkWebhookEvent {
     type: string;
