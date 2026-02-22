@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import rateLimit from 'express-rate-limit';
 import { requireAuth } from '../middleware/auth.middleware';
 import { syncUserMiddleware } from '../middleware/user.middleware';
 import {
@@ -18,6 +19,25 @@ import {
 
 const router = Router();
 
+// Global rate limiter for all SMMA routes (100 requests per 15 minutes per IP)
+const smmqLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 100,
+    message: { success: false, error: 'Too many requests, please try again later.' },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+// Rate limiter for AI generation endpoints (10 requests per 15 minutes per IP)
+const generateLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 10,
+    message: { success: false, error: 'Too many generation requests, please try again later.' },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+router.use(smmqLimiter);
 router.use(requireAuth);
 router.use(syncUserMiddleware);
 
@@ -25,8 +45,8 @@ router.use(syncUserMiddleware);
 router.post('/questionnaire', upsertQuestionnaire);
 router.get('/questionnaire', getQuestionnaire);
 
-// Generation
-router.post('/generate', generateContent);
+// Generation (rate-limited)
+router.post('/generate', generateLimiter, generateContent);
 
 // Content library
 router.get('/content', listContent);
@@ -37,8 +57,8 @@ router.put('/content/:id', updateContentItem);
 router.post('/calendar', createCalendarEvent);
 router.get('/calendar', listCalendarEvents);
 
-// Repurpose
-router.post('/content/:id/repurpose', repurposeContent);
+// Repurpose (rate-limited)
+router.post('/content/:id/repurpose', generateLimiter, repurposeContent);
 
 // CSV Export
 router.get('/export', exportCsv);
