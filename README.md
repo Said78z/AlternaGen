@@ -128,7 +128,8 @@ The project uses GitHub Actions for CI/CD. On push to `main`:
 
 ## 📝 License
 
-Private - All Rights Reserved
+CC0-1.0 — do whatever you want (including commercial use).  
+This explicitly allows use by AI tools (including GitHub Copilot) and redistribution of generated derivatives.
 
 ## 👥 Team
 
