@@ -1,0 +1,1 @@
+"""RepoBootstrapper bot."""

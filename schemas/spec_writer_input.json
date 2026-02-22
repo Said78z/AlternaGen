@@ -1,0 +1,6 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SpecWriter Input",
+  "description": "Input schema for the SpecWriter bot (same shape as IdeaRanker output)",
+  "$ref": "idea_ranker_output.json"
+}
