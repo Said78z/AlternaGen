@@ -5,6 +5,7 @@ Uses the official HN Firebase REST API (no auth, no scraping):
 """
 from __future__ import annotations
 
+import datetime
 import logging
 import time
 from typing import Any
@@ -77,5 +78,4 @@ def _unix_to_iso(unix_ts: int | None) -> str:
     """Convert a Unix timestamp to an ISO 8601 string."""
     if unix_ts is None:
         return ""
-    import datetime
     return datetime.datetime.fromtimestamp(unix_ts, tz=datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")

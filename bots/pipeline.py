@@ -170,16 +170,17 @@ def main() -> None:
     results = run_pipeline(out_dir=out_dir, sources=sources, limit=args.limit, phase=args.phase)
     logger.info("Pipeline complete. Outputs in %s/", out_dir)
 
-    # Print spec summary to stdout
+    # Log spec summary
     spec = results.get("spec_writer", {}).get("spec", {})
     if spec:
-        print(f"\n{'='*60}")
-        print(f"  MVP SPEC: {spec.get('title')}")
-        print(f"{'='*60}")
-        print(f"  {spec.get('description', '')[:200]}")
-        print(f"\n  Tech stack: {', '.join(spec.get('tech_stack', []))}")
-        print(f"  MVP scope : {spec.get('mvp_scope', '')[:150]}")
-        print(f"{'='*60}\n")
+        logger.info("=" * 60)
+        logger.info("  MVP SPEC: %s", spec.get("title"))
+        logger.info("=" * 60)
+        desc = spec.get("description", "")[:200]
+        logger.info("  %s", desc)
+        logger.info("  Tech stack: %s", ", ".join(spec.get("tech_stack", [])))
+        logger.info("  MVP scope : %s", spec.get("mvp_scope", "")[:150])
+        logger.info("=" * 60)
 
 
 if __name__ == "__main__":

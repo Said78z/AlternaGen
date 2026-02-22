@@ -36,7 +36,7 @@ def _entry_to_signal(entry: Any, feed_id: str) -> dict[str, Any]:
     summary = getattr(entry, "summary", "") or ""
 
     # Derive a stable ID from the URL
-    sig_id = f"rss-{feed_id}-{hashlib.md5(link.encode()).hexdigest()[:8]}"  # noqa: S324
+    sig_id = f"rss-{feed_id}-{hashlib.sha256(link.encode()).hexdigest()[:8]}"
 
     # Extract tags from categories if present
     tags: list[str] = []

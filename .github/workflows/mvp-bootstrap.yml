@@ -62,7 +62,7 @@ jobs:
           SLUG: ${{ steps.issue_info.outputs.slug }}
         run: |
           python - <<'EOF'
-          import os, json
+          import os, json, textwrap
           from pathlib import Path
           from datetime import datetime, timezone
 
@@ -74,32 +74,32 @@ jobs:
           mvp_dir = Path(f"mvps/{date}-{slug}")
           mvp_dir.mkdir(parents=True, exist_ok=True)
 
-          # Write a README for this MVP
-          readme = f"""# {issue_title}
+          readme = textwrap.dedent(f"""\
+              # {issue_title}
 
-          > Bootstrapped by SaaS Factory · {date}
-          > Source issue: #{issue_number}
+              > Bootstrapped by SaaS Factory · {date}
+              > Source issue: #{issue_number}
 
-          ## Status
+              ## Status
 
-          - [ ] Spec reviewed and approved
-          - [ ] Tech stack confirmed
-          - [ ] Development started
-          - [ ] MVP shipped
+              - [ ] Spec reviewed and approved
+              - [ ] Tech stack confirmed
+              - [ ] Development started
+              - [ ] MVP shipped
 
-          ## Getting Started
+              ## Getting Started
 
-          This directory was auto-bootstrapped. Edit and fill in the implementation details.
+              This directory was auto-bootstrapped. Edit and fill in the implementation details.
 
-          ## Structure
+              ## Structure
 
-          ```
-          {mvp_dir}/
-          ├── README.md        ← this file
-          ├── spec.json        ← full MVP spec (from SpecWriter)
-          └── src/             ← implementation goes here
-          ```
-          """
+              ```
+              {mvp_dir}/
+              ├── README.md        ← this file
+              ├── spec.json        ← full MVP spec (from SpecWriter)
+              └── src/             ← implementation goes here
+              ```
+          """)
 
           (mvp_dir / "README.md").write_text(readme)
           (mvp_dir / "src" / ".gitkeep").parent.mkdir(exist_ok=True)
