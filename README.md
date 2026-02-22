@@ -1,8 +1,37 @@
 # AlternaGen
 
-**AI-Powered Alternance Hunting Platform**
+**AI-Powered Alternance Hunting Platform + SaaS Factory**
 
 AlternaGen is a SaaS platform that helps students find apprenticeship opportunities (alternance) using AI agents. The platform combines automated job scraping, intelligent matching, and a browser extension for seamless job saving.
+
+---
+
+## 🏭 SaaS Factory (Modular Bot Pipeline)
+
+AlternaGen now includes a **SaaS Factory** — a modular pipeline of bots that automatically discovers trending signals, ranks MVP ideas, and generates structured specifications.
+
+**[📖 Full SaaS Factory Documentation →](docs/README_FACTORY.md)**
+
+```
+SignalScout → IdeaRanker → SpecWriter → (RepoBootstrapper → MVPBuilder → QAGuard → SecurityGuard → WhiteLabelPackager → LaunchKit)
+```
+
+### Quick Start (SaaS Factory)
+
+```bash
+# Install Python dependencies
+pip install -e ".[dev]"
+
+# Run the full discovery + spec pipeline
+make run-daily
+
+# Or the full pipeline including stub bots
+make run-pipeline
+```
+
+Outputs are written to `out/`. See [`docs/README_FACTORY.md`](docs/README_FACTORY.md) for full setup, environment variables, and how to add new bots and sources.
+
+---
 
 ## 🚀 Quick Start
 

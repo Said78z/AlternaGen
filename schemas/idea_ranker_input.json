@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "IdeaRankerInput",
+  "description": "Input for IdeaRanker bot: signals from SignalScout",
+  "type": "object",
+  "required": ["signals"],
+  "properties": {
+    "signals": {
+      "type": "array",
+      "description": "Signals array from SignalScout output",
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "url", "source", "score", "collected_at"],
+        "properties": {
+          "id": {"type": "string"},
+          "title": {"type": "string"},
+          "url": {"type": "string", "format": "uri"},
+          "source": {"type": "string"},
+          "score": {"type": "integer", "minimum": 0},
+          "comments": {"type": "integer", "minimum": 0, "default": 0},
+          "tags": {"type": "array", "items": {"type": "string"}},
+          "collected_at": {"type": "string", "format": "date-time"}
+        }
+      },
+      "minItems": 1
+    },
+    "top_n": {
+      "type": "integer",
+      "description": "Number of top ideas to return",
+      "minimum": 1,
+      "maximum": 20,
+      "default": 5
+    },
+    "weights": {
+      "type": "object",
+      "description": "Scoring weights (must sum to 1.0)",
+      "properties": {
+        "score": {"type": "number", "minimum": 0, "maximum": 1},
+        "comments": {"type": "number", "minimum": 0, "maximum": 1},
+        "recency": {"type": "number", "minimum": 0, "maximum": 1}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

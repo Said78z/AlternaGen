@@ -1,0 +1,62 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "IdeaRankerOutput",
+  "description": "Output of IdeaRanker bot: ranked ideas with scores",
+  "type": "object",
+  "required": ["ideas", "metadata"],
+  "properties": {
+    "ideas": {
+      "type": "array",
+      "description": "Ranked ideas, from highest to lowest composite score",
+      "items": {
+        "type": "object",
+        "required": ["rank", "id", "title", "url", "source", "composite_score", "rationale"],
+        "properties": {
+          "rank": {
+            "type": "integer",
+            "description": "Position in ranking (1 = best)",
+            "minimum": 1
+          },
+          "id": {"type": "string"},
+          "title": {"type": "string"},
+          "url": {"type": "string", "format": "uri"},
+          "source": {"type": "string"},
+          "composite_score": {
+            "type": "number",
+            "description": "Weighted composite score [0–100]",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "raw_score": {"type": "integer", "minimum": 0},
+          "raw_comments": {"type": "integer", "minimum": 0},
+          "tags": {"type": "array", "items": {"type": "string"}},
+          "rationale": {
+            "type": "string",
+            "description": "Brief explanation of why this idea ranked here"
+          }
+        },
+        "additionalProperties": false
+      },
+      "minItems": 1
+    },
+    "metadata": {
+      "type": "object",
+      "required": ["run_at", "total_input_signals"],
+      "properties": {
+        "run_at": {"type": "string", "format": "date-time"},
+        "total_input_signals": {"type": "integer", "minimum": 0},
+        "weights_used": {
+          "type": "object",
+          "properties": {
+            "score": {"type": "number"},
+            "comments": {"type": "number"},
+            "recency": {"type": "number"}
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

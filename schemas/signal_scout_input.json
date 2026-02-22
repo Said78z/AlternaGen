@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SignalScoutInput",
+  "description": "Input configuration for SignalScout bot",
+  "type": "object",
+  "properties": {
+    "sources": {
+      "type": "array",
+      "description": "List of signal sources to fetch from",
+      "items": {
+        "type": "string",
+        "enum": ["hackernews", "rss_techcrunch", "rss_producthunt", "rss_indiehackers"]
+      },
+      "minItems": 1,
+      "default": ["hackernews", "rss_techcrunch"]
+    },
+    "max_signals": {
+      "type": "integer",
+      "description": "Maximum number of signals to collect",
+      "minimum": 1,
+      "maximum": 100,
+      "default": 30
+    },
+    "min_score": {
+      "type": "integer",
+      "description": "Minimum HN score (points) to include a signal",
+      "minimum": 0,
+      "default": 50
+    }
+  },
+  "additionalProperties": false
+}

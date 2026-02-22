@@ -1,0 +1,102 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SpecWriterOutput",
+  "description": "Output of SpecWriter bot: a complete MVP specification",
+  "type": "object",
+  "required": ["spec", "metadata"],
+  "properties": {
+    "spec": {
+      "type": "object",
+      "required": ["id", "title", "problem", "solution", "target_users", "core_features", "tech_stack", "milestones", "markdown"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique spec identifier (e.g., SPEC-20240101-001)"
+        },
+        "title": {
+          "type": "string",
+          "description": "MVP product title"
+        },
+        "problem": {
+          "type": "string",
+          "description": "Problem statement"
+        },
+        "solution": {
+          "type": "string",
+          "description": "Proposed solution summary"
+        },
+        "target_users": {
+          "type": "array",
+          "items": {"type": "string"},
+          "description": "Target user personas",
+          "minItems": 1
+        },
+        "core_features": {
+          "type": "array",
+          "description": "Core MVP features",
+          "items": {
+            "type": "object",
+            "required": ["name", "description", "priority"],
+            "properties": {
+              "name": {"type": "string"},
+              "description": {"type": "string"},
+              "priority": {
+                "type": "string",
+                "enum": ["P0", "P1", "P2"]
+              }
+            },
+            "additionalProperties": false
+          },
+          "minItems": 1
+        },
+        "tech_stack": {
+          "type": "object",
+          "properties": {
+            "frontend": {"type": "string"},
+            "backend": {"type": "string"},
+            "database": {"type": "string"},
+            "infra": {"type": "string"}
+          },
+          "additionalProperties": false
+        },
+        "milestones": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "duration", "deliverables"],
+            "properties": {
+              "name": {"type": "string"},
+              "duration": {"type": "string"},
+              "deliverables": {
+                "type": "array",
+                "items": {"type": "string"}
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "markdown": {
+          "type": "string",
+          "description": "Full Markdown-formatted spec document"
+        },
+        "signal_source_url": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL of the original signal that triggered this spec"
+        }
+      },
+      "additionalProperties": false
+    },
+    "metadata": {
+      "type": "object",
+      "required": ["run_at", "idea_id", "template_used"],
+      "properties": {
+        "run_at": {"type": "string", "format": "date-time"},
+        "idea_id": {"type": "string"},
+        "template_used": {"type": "string"}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

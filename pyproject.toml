@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "alternagen-factory"
+version = "0.1.0"
+description = "AlternaGen SaaS Factory – modular bot pipeline"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "jsonschema>=4.22",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "responses>=0.25",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["bots*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+
+[project.scripts]
+signal-scout = "bots.signal_scout.main:main"
+idea-ranker = "bots.idea_ranker.main:main"
+spec-writer = "bots.spec_writer.main:main"
+repo-bootstrapper = "bots.repo_bootstrapper.main:main"
+mvp-builder = "bots.mvp_builder.main:main"
+qa-guard = "bots.qa_guard.main:main"
+security-guard = "bots.security_guard.main:main"
+white-label-packager = "bots.white_label_packager.main:main"
+launch-kit = "bots.launch_kit.main:main"

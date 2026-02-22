@@ -1,0 +1,92 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MVPBuilder / QAGuard / SecurityGuard / WhiteLabelPackager / LaunchKit - stub schemas",
+  "description": "Placeholder schemas for remaining pipeline bots",
+  "definitions": {
+    "mvp_builder_input": {
+      "type": "object",
+      "required": ["spec_id", "repo_url"],
+      "properties": {
+        "spec_id": {"type": "string"},
+        "repo_url": {"type": "string", "format": "uri"}
+      }
+    },
+    "mvp_builder_output": {
+      "type": "object",
+      "required": ["status", "artifacts"],
+      "properties": {
+        "status": {"type": "string", "enum": ["success", "partial", "failed"]},
+        "artifacts": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "qa_guard_input": {
+      "type": "object",
+      "required": ["repo_url", "artifacts"],
+      "properties": {
+        "repo_url": {"type": "string", "format": "uri"},
+        "artifacts": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "qa_guard_output": {
+      "type": "object",
+      "required": ["passed", "issues"],
+      "properties": {
+        "passed": {"type": "boolean"},
+        "issues": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "security_guard_input": {
+      "type": "object",
+      "required": ["repo_url"],
+      "properties": {
+        "repo_url": {"type": "string", "format": "uri"}
+      }
+    },
+    "security_guard_output": {
+      "type": "object",
+      "required": ["passed", "vulnerabilities"],
+      "properties": {
+        "passed": {"type": "boolean"},
+        "vulnerabilities": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "white_label_packager_input": {
+      "type": "object",
+      "required": ["repo_url", "brand"],
+      "properties": {
+        "repo_url": {"type": "string", "format": "uri"},
+        "brand": {
+          "type": "object",
+          "properties": {
+            "name": {"type": "string"},
+            "primary_color": {"type": "string"},
+            "logo_url": {"type": "string"}
+          }
+        }
+      }
+    },
+    "white_label_packager_output": {
+      "type": "object",
+      "required": ["package_url"],
+      "properties": {
+        "package_url": {"type": "string", "format": "uri"}
+      }
+    },
+    "launch_kit_input": {
+      "type": "object",
+      "required": ["spec_id", "repo_url"],
+      "properties": {
+        "spec_id": {"type": "string"},
+        "repo_url": {"type": "string", "format": "uri"}
+      }
+    },
+    "launch_kit_output": {
+      "type": "object",
+      "required": ["landing_page_url", "pr_url"],
+      "properties": {
+        "landing_page_url": {"type": "string"},
+        "pr_url": {"type": "string", "format": "uri"}
+      }
+    }
+  }
+}

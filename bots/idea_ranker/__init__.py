@@ -1,0 +1,1 @@
+"""IdeaRanker bot package."""

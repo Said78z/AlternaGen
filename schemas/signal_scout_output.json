@@ -1,0 +1,79 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SignalScoutOutput",
+  "description": "Output of SignalScout bot: a list of collected signals",
+  "type": "object",
+  "required": ["signals", "metadata"],
+  "properties": {
+    "signals": {
+      "type": "array",
+      "description": "Collected market/tech signals",
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "url", "source", "score", "collected_at"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for this signal"
+          },
+          "title": {
+            "type": "string",
+            "description": "Title or headline of the signal"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Original URL of the signal"
+          },
+          "source": {
+            "type": "string",
+            "description": "Source name (e.g., hackernews, rss_techcrunch)"
+          },
+          "score": {
+            "type": "integer",
+            "description": "Raw score or upvotes from source",
+            "minimum": 0
+          },
+          "comments": {
+            "type": "integer",
+            "description": "Number of comments/discussions",
+            "minimum": 0,
+            "default": 0
+          },
+          "tags": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "Detected topic tags",
+            "default": []
+          },
+          "collected_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "ISO-8601 timestamp when the signal was collected"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "required": ["run_at", "sources_used", "total_fetched"],
+      "properties": {
+        "run_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "sources_used": {
+          "type": "array",
+          "items": {"type": "string"}
+        },
+        "total_fetched": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,154 @@
+name: Build – Bootstrap MVP from Issue
+
+on:
+  issues:
+    types: [labeled]
+
+# Only react to issues labeled with 'mvp-approved'
+# This prevents auto-execution – a human must add the label.
+
+jobs:
+  bootstrap:
+    name: Bootstrap MVP Repository
+    if: github.event.label.name == 'mvp-approved'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -e ".[dev]"
+
+      - name: Extract spec from issue body
+        id: extract
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          python - <<'EOF'
+          import os, re, json
+          from pathlib import Path
+
+          body = os.environ["ISSUE_BODY"]
+          title = os.environ["ISSUE_TITLE"]
+          issue_number = os.environ["ISSUE_NUMBER"]
+
+          # Extract spec ID from issue body
+          spec_id_match = re.search(r'`(SPEC-[^`]+)`', body)
+          spec_id = spec_id_match.group(1) if spec_id_match else f"SPEC-ISSUE-{issue_number}"
+
+          Path("out").mkdir(exist_ok=True)
+          Path("out/issue_meta.json").write_text(json.dumps({
+              "spec_id": spec_id,
+              "issue_number": int(issue_number),
+              "issue_title": title,
+          }, indent=2))
+          print(f"Extracted spec_id: {spec_id}")
+          # Export to GITHUB_OUTPUT
+          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+              f.write(f"spec_id={spec_id}\n")
+              f.write(f"issue_number={issue_number}\n")
+          EOF
+
+      - name: Create bootstrap branch
+        id: branch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SPEC_ID: ${{ steps.extract.outputs.spec_id }}
+          ISSUE_NUMBER: ${{ steps.extract.outputs.issue_number }}
+        run: |
+          BRANCH="bootstrap/mvp-issue-${ISSUE_NUMBER}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+
+          # Scaffold the MVP structure on the branch
+          mkdir -p "mvp/issue-${ISSUE_NUMBER}/src"
+          cat > "mvp/issue-${ISSUE_NUMBER}/README.md" << MDEOF
+          # MVP – Issue #${ISSUE_NUMBER}
+
+          **Spec ID**: \`${SPEC_ID}\`
+
+          This directory was automatically bootstrapped by the AlternaGen SaaS Factory.
+
+          ## Getting Started
+
+          1. Review the spec in the linked issue #${ISSUE_NUMBER}
+          2. Set up your local environment (see root README)
+          3. Implement the P0 features listed in the spec
+          4. Open a PR with your changes
+
+          ## Structure
+
+          \`\`\`
+          mvp/issue-${ISSUE_NUMBER}/
+          ├── README.md          # This file
+          ├── src/               # Source code
+          └── tests/             # Tests
+          \`\`\`
+          MDEOF
+
+          cat > "mvp/issue-${ISSUE_NUMBER}/src/.gitkeep" << 'EOF'
+          EOF
+
+          git add "mvp/issue-${ISSUE_NUMBER}/"
+          git commit -m "bootstrap: scaffold MVP for issue #${ISSUE_NUMBER} (${SPEC_ID})"
+          git push origin "$BRANCH"
+
+          echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
+
+      - name: Open Pull Request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: ${{ steps.branch.outputs.branch }}
+          ISSUE_NUMBER: ${{ steps.extract.outputs.issue_number }}
+          SPEC_ID: ${{ steps.extract.outputs.spec_id }}
+        run: |
+          PR_BODY="## Bootstrap PR for Issue #${ISSUE_NUMBER}
+
+          **Spec ID**: \`${SPEC_ID}\`
+
+          This PR was automatically created by the AlternaGen SaaS Factory to bootstrap
+          the MVP structure for the approved idea in issue #${ISSUE_NUMBER}.
+
+          ### Contents
+          - \`mvp/issue-${ISSUE_NUMBER}/README.md\` – project scaffold and getting-started guide
+          - \`mvp/issue-${ISSUE_NUMBER}/src/\` – placeholder for source code
+
+          ### Next Steps
+          - [ ] Review the spec in issue #${ISSUE_NUMBER}
+          - [ ] Implement P0 features in \`mvp/issue-${ISSUE_NUMBER}/src/\`
+          - [ ] Add tests in \`mvp/issue-${ISSUE_NUMBER}/tests/\`
+          - [ ] Get code review and merge
+
+          > ⚠️ **This PR is NOT auto-merged.** Human review is required.
+
+          Closes #${ISSUE_NUMBER}"
+
+          gh pr create \
+            --title "🚀 Bootstrap MVP: Issue #${ISSUE_NUMBER} (${SPEC_ID})" \
+            --body "$PR_BODY" \
+            --base main \
+            --head "$BRANCH" \
+            --label "mvp-bootstrap"
+
+      - name: Comment on issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ steps.extract.outputs.issue_number }}
+          BRANCH: ${{ steps.branch.outputs.branch }}
+        run: |
+          gh issue comment "$ISSUE_NUMBER" \
+            --body "🤖 **AlternaGen SaaS Factory**: Bootstrap PR created on branch \`${BRANCH}\`. Review and merge when ready. The PR will **not** be auto-merged."
