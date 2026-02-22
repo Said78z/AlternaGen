@@ -1,0 +1,21 @@
+name: Assign autosaas issues to Copilot
+
+on:
+  issues:
+    types: [labeled]
+
+jobs:
+  assign-to-copilot:
+    if: github.event.label.name == 'autosaas'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Assign issue to Copilot
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: |
+          gh issue edit "$ISSUE_NUMBER" --repo "$REPO" --add-assignee "@copilot"
+          echo "Assigned issue #$ISSUE_NUMBER to @copilot"
