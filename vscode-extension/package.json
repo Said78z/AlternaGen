@@ -1,0 +1,105 @@
+{
+  "name": "alternagen-hunter",
+  "displayName": "AlternaGen Hunter",
+  "description": "Save apprenticeship (alternance) offers to AlternaGen directly from VS Code.",
+  "version": "0.1.0",
+  "publisher": "AlternaGen",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Said78z/AlternaGen"
+  },
+  "bugs": {
+    "url": "https://github.com/Said78z/AlternaGen/issues"
+  },
+  "homepage": "https://github.com/Said78z/AlternaGen#readme",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "alternance",
+    "apprenticeship",
+    "job",
+    "recruitment",
+    "ai"
+  ],
+  "activationEvents": [],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "alternagen.saveJob",
+        "title": "AlternaGen: Save Job Offer"
+      },
+      {
+        "command": "alternagen.listJobs",
+        "title": "AlternaGen: List Saved Jobs"
+      },
+      {
+        "command": "alternagen.clearJobs",
+        "title": "AlternaGen: Clear Saved Jobs"
+      }
+    ],
+    "configuration": {
+      "title": "AlternaGen Hunter",
+      "properties": {
+        "alternagen.apiUrl": {
+          "type": "string",
+          "default": "http://localhost:3000/api/extension/save-job",
+          "description": "The AlternaGen API endpoint used to save job offers."
+        },
+        "alternagen.autoExtract": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically attempt to extract job details from the active editor content."
+        }
+      }
+    },
+    "menus": {
+      "editor/context": [
+        {
+          "command": "alternagen.saveJob",
+          "when": "editorHasSelection",
+          "group": "alternagen"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "alternagen.saveJob"
+        },
+        {
+          "command": "alternagen.listJobs"
+        },
+        {
+          "command": "alternagen.clearJobs"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "alternagen.saveJob",
+        "key": "ctrl+alt+s",
+        "mac": "cmd+alt+s",
+        "when": "editorTextFocus"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile",
+    "test": "node ./out/test/runTest.js",
+    "lint": "eslint src"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.85.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "eslint": "^8.57.0",
+    "typescript": "^5.3.3"
+  }
+}

@@ -19,6 +19,10 @@ dist-ssr/
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
+# Allow the VS Code extension's own debug/build config
+!vscode-extension/.vscode/
+!vscode-extension/.vscode/launch.json
+!vscode-extension/.vscode/tasks.json
 .idea/
 .DS_Store
 *.suo
