@@ -1,5 +1,6 @@
 import prisma from '../utils/database';
 // Use string literals to avoid build issues if Prisma client is not fully generated
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 type TaskStatusType = 'QUEUED' | 'RUNNING' | 'SUCCESS' | 'FAILED';
 const TaskStatus = {
     QUEUED: 'QUEUED' as any,

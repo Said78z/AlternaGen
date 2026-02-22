@@ -50,7 +50,7 @@ export async function getRecommendedOffers(req: Request, res: Response) {
         const userId = req.userId!;
 
         // MVP logic: Find top matches. If none, trigger matching task
-        let matches = await prisma.jobMatch.findMany({
+        const matches = await prisma.jobMatch.findMany({
             where: { userId },
             include: { jobOffer: true },
             orderBy: { scoreTotal: 'desc' },
