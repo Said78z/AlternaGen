@@ -1,0 +1,156 @@
+name: SaaS Factory — MVP Bootstrap
+
+on:
+  issues:
+    types: [labeled]
+
+jobs:
+  bootstrap:
+    name: Bootstrap MVP branch + PR
+    # Only run when the 'mvp' label is added to an issue
+    if: github.event.label.name == 'mvp'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Extract MVP title from issue
+        id: issue_info
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ISSUE_TITLE="${{ github.event.issue.title }}"
+          # Sanitize for branch name: lowercase, replace spaces with dashes, remove special chars
+          SLUG=$(echo "$ISSUE_TITLE" | sed 's/\[MVP\] //g' | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9 -]//g' | sed 's/ /-/g' | cut -c1-50)
+          DATE=$(date -u +%Y-%m-%d)
+          BRANCH="mvp/${DATE}-${SLUG}"
+          echo "branch=${BRANCH}" >> $GITHUB_OUTPUT
+          echo "date=${DATE}" >> $GITHUB_OUTPUT
+          echo "slug=${SLUG}" >> $GITHUB_OUTPUT
+
+      - name: Create MVP bootstrap branch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          BRANCH="${{ steps.issue_info.outputs.branch }}"
+          git checkout -b "$BRANCH"
+
+      - name: Scaffold MVP directory
+        env:
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          DATE: ${{ steps.issue_info.outputs.date }}
+          SLUG: ${{ steps.issue_info.outputs.slug }}
+        run: |
+          python - <<'EOF'
+          import os, json
+          from pathlib import Path
+          from datetime import datetime, timezone
+
+          slug = os.environ["SLUG"]
+          issue_number = os.environ["ISSUE_NUMBER"]
+          issue_title = os.environ["ISSUE_TITLE"]
+          date = os.environ["DATE"]
+
+          mvp_dir = Path(f"mvps/{date}-{slug}")
+          mvp_dir.mkdir(parents=True, exist_ok=True)
+
+          # Write a README for this MVP
+          readme = f"""# {issue_title}
+
+          > Bootstrapped by SaaS Factory · {date}
+          > Source issue: #{issue_number}
+
+          ## Status
+
+          - [ ] Spec reviewed and approved
+          - [ ] Tech stack confirmed
+          - [ ] Development started
+          - [ ] MVP shipped
+
+          ## Getting Started
+
+          This directory was auto-bootstrapped. Edit and fill in the implementation details.
+
+          ## Structure
+
+          ```
+          {mvp_dir}/
+          ├── README.md        ← this file
+          ├── spec.json        ← full MVP spec (from SpecWriter)
+          └── src/             ← implementation goes here
+          ```
+          """
+
+          (mvp_dir / "README.md").write_text(readme)
+          (mvp_dir / "src" / ".gitkeep").parent.mkdir(exist_ok=True)
+          (mvp_dir / "src" / ".gitkeep").touch()
+
+          bootstrap_meta = {
+              "issue_number": int(issue_number),
+              "issue_title": issue_title,
+              "bootstrapped_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+              "slug": slug,
+          }
+          (mvp_dir / "bootstrap.json").write_text(json.dumps(bootstrap_meta, indent=2))
+          print(f"Scaffolded: {mvp_dir}")
+          EOF
+
+      - name: Commit bootstrap files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add mvps/
+          git commit -m "bootstrap: scaffold MVP for issue #${{ github.event.issue.number }}"
+
+      - name: Push branch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git push origin "${{ steps.issue_info.outputs.branch }}"
+
+      - name: Open Draft PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr create \
+            --title "🚀 Bootstrap: ${{ github.event.issue.title }}" \
+            --body "## Bootstrap PR for MVP
+
+          Closes #${{ github.event.issue.number }}
+
+          This PR was auto-created by the SaaS Factory bootstrap workflow.
+
+          ### What's included
+          - Scaffolded \`mvps/${{ steps.issue_info.outputs.date }}-${{ steps.issue_info.outputs.slug }}/\` directory
+          - \`README.md\` + \`bootstrap.json\` + \`src/\` placeholder
+
+          ### Next steps
+          1. Review and update the spec
+          2. Implement the MVP in \`src/\`
+          3. Remove **Draft** status when ready for review
+
+          > ⚠️ **Do not merge automatically.** A human must review before merging." \
+            --head "${{ steps.issue_info.outputs.branch }}" \
+            --base main \
+            --draft \
+            --label "mvp"
