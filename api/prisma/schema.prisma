@@ -219,7 +219,7 @@ model AgentTask {
 model Generation {
   id        String   @id @default(uuid())
   userId    String   @map("user_id")
-  type      String   // "CV", "COVER_LETTER"
+  type      String   // "CV", "COVER_LETTER", "SEO_ARTICLE"
   input     String   @db.Text
   output    String   @db.Text
   createdAt DateTime @default(now()) @map("created_at")

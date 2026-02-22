@@ -4,6 +4,7 @@ import {
     getCredits,
     generateCVController,
     generateCoverLetterController,
+    generateSEOArticleController,
     getGenerationHistory,
 } from '../controllers/ai.controller';
 import { syncUserMiddleware } from '../middleware/user.middleware';
@@ -20,6 +21,7 @@ router.get('/credits', getCredits);
 // Generation
 router.post('/generate-cv', generateCVController);
 router.post('/generate-cover-letter', generateCoverLetterController);
+router.post('/generate-seo-article', generateSEOArticleController);
 
 // History
 router.get('/history', getGenerationHistory);
