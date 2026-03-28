@@ -1,5 +1,4 @@
-import { Router } from 'express';
-import express from 'express';
+import { Router, raw } from 'express';
 import { handleClerkWebhook } from '../controllers/auth.controller';
 
 const router = Router();
@@ -11,7 +10,7 @@ const router = Router();
  */
 router.post(
     '/webhook',
-    express.raw({ type: 'application/json' }),
+    raw({ type: 'application/json' }),
     handleClerkWebhook
 );
 

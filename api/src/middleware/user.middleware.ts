@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { prisma } from '../utils/database';
+import logger from '../utils/logger';
 
 export const syncUserMiddleware = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -18,7 +19,7 @@ export const syncUserMiddleware = async (req: Request, res: Response, next: Next
         }
         next();
     } catch (error) {
-        console.error('Sync user middleware error:', error);
+        logger.error({ error }, 'Sync user middleware error');
         next();
     }
 };
@@ -48,7 +49,7 @@ export const requirePro = async (req: Request, res: Response, next: NextFunction
 
         next();
     } catch (error) {
-        console.error('RequirePro middleware error:', error);
+        logger.error({ error }, 'RequirePro middleware error');
         return res.status(500).json({ error: 'Internal Server Error' });
     }
 };
