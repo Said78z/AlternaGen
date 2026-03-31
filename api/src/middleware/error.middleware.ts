@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import logger from '../utils/logger';
 
 /**
  * Global error handling middleware
@@ -10,7 +11,7 @@ export const errorHandler = (
     res: Response,
     _next: NextFunction
 ): void => {
-    console.error('Error:', err);
+    logger.error({ err }, 'Unhandled error');
 
     // Default error response
     const statusCode = res.statusCode !== 200 ? res.statusCode : 500;

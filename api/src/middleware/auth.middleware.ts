@@ -1,15 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { verifyToken } from '@clerk/backend';
-
-// Extend Express Request to include user info
-declare global {
-    namespace Express {
-        interface Request {
-            userId?: string;
-            clerkId?: string;
-        }
-    }
-}
+import logger from '../utils/logger';
 
 /**
  * Authentication middleware using Clerk
@@ -57,7 +48,7 @@ export const requireAuth = async (
 
         next();
     } catch (error) {
-        console.error('Auth middleware error:', error);
+        logger.error({ error }, 'Auth middleware error');
         res.status(401).json({
             success: false,
             error: {

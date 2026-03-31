@@ -82,7 +82,7 @@ export async function handleWebhook(payload: Buffer, signature: string): Promise
                         currentPeriodEnd: new Date((stripeSub as any).current_period_end * 1000)
                     }
                 });
-                console.log(`[Stripe] Subscription created/updated for user ${userId}`);
+                logger.info({ userId }, '[Stripe] Subscription created/updated');
             }
             break;
         }
@@ -107,12 +107,12 @@ export async function handleWebhook(payload: Buffer, signature: string): Promise
                     status: 'canceled',
                 }
             });
-            console.log(`[Stripe] Subscription canceled for subs ${sub.id}`);
+            logger.info({ subscriptionId: sub.id }, '[Stripe] Subscription canceled');
             break;
         }
 
         default:
-            console.log(`Unhandled event type: ${event.type}`);
+            logger.warn({ eventType: event.type }, 'Unhandled Stripe event type');
     }
 
     metrics.increment('webhook_success_total');
