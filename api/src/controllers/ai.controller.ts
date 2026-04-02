@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { generateCV, generateCoverLetter, CVInput, CoverLetterInput } from '../services/openai.service';
+import { generateCV, generateCoverLetter, generateLinkedInPost, CVInput, CoverLetterInput, LinkedInPostInput } from '../services/openai.service';
 import { prisma } from '../utils/database';
 import logger from '../utils/logger';
 
@@ -144,6 +144,51 @@ export async function generateCoverLetterController(req: Request, res: Response)
     } catch (error: any) {
         logger.error('Generate cover letter error:', error);
         res.status(500).json({ error: 'Failed to generate cover letter' });
+    }
+}
+
+export async function generateLinkedInPostController(req: Request, res: Response) {
+    try {
+        const userId = req.userId!;
+        const input: LinkedInPostInput = req.body;
+
+        // Validate required fields
+        const { industry, targetAudience, writingStyle, objective } = input;
+        const validStyles = ['concise', 'expert', 'storytelling'];
+        const validObjectives = ['visibility', 'engagement', 'awareness'];
+        if (!industry || !targetAudience || !validStyles.includes(writingStyle) || !validObjectives.includes(objective)) {
+            return res.status(400).json({
+                error: 'Invalid input',
+                message: 'Required fields: industry, targetAudience, writingStyle (concise|expert|storytelling), objective (visibility|engagement|awareness)',
+            });
+        }
+
+        // Check credits
+        const hasCredits = await checkAndDeductCredits(userId);
+        if (!hasCredits) {
+            return res.status(402).json({
+                error: 'No credits remaining',
+                message: 'Upgrade to Pro for unlimited generations'
+            });
+        }
+
+        // Generate LinkedIn post variants
+        const variants = await generateLinkedInPost(input);
+
+        // Save to history
+        await prisma.generation.create({
+            data: {
+                userId,
+                type: 'LINKEDIN_POST',
+                input: JSON.stringify(input),
+                output: JSON.stringify(variants),
+            },
+        });
+
+        res.json({ variants });
+    } catch (error: any) {
+        logger.error('Generate LinkedIn post error:', error);
+        res.status(500).json({ error: 'Failed to generate LinkedIn post' });
     }
 }
 
