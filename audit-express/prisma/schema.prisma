@@ -1,0 +1,66 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model AuditTemplate {
+  nicheKey    String   @id @map("niche_key")
+  title       String
+  description String?  @db.Text
+  questions   Json     // array of question objects
+  recoRules   Json     @map("reco_rules")
+  calendlyUrl String?  @map("calendly_url")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  audits Audit[]
+
+  @@map("audit_templates")
+}
+
+enum AuditStage {
+  NEW
+  QUALIFIED
+  BOOKED
+  WON
+  LOST
+}
+
+model Audit {
+  id              String      @id @default(uuid())
+  nicheKey        String      @map("niche_key")
+  templateId      String      @map("template_id")
+  email           String?
+  answers         Json
+  scoreTotal      Int         @map("score_total")
+  scoreBreakdown  Json        @map("score_breakdown")
+  recommendations Json
+  pdfPath         String?     @map("pdf_path")
+  stage           AuditStage  @default(NEW)
+  notes           String?     @db.Text
+  createdAt       DateTime    @default(now()) @map("created_at")
+  updatedAt       DateTime    @updatedAt @map("updated_at")
+
+  template AuditTemplate @relation(fields: [nicheKey], references: [nicheKey])
+  events   AuditEvent[]
+
+  @@index([nicheKey, stage])
+  @@index([email])
+  @@map("audits")
+}
+
+model AuditEvent {
+  id        String   @id @default(uuid())
+  auditId   String   @map("audit_id")
+  type      String
+  payload   Json?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  audit Audit @relation(fields: [auditId], references: [id], onDelete: Cascade)
+
+  @@index([auditId, createdAt(sort: Desc)])
+  @@map("audit_events")
+}
