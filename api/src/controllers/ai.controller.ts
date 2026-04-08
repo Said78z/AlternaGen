@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { generateCV, generateCoverLetter, CVInput, CoverLetterInput } from '../services/openai.service';
+import { generateCV, generateCoverLetter, generateSEOArticle, CVInput, CoverLetterInput, SEOArticleInput } from '../services/openai.service';
 import { prisma } from '../utils/database';
 import logger from '../utils/logger';
 
@@ -144,6 +144,44 @@ export async function generateCoverLetterController(req: Request, res: Response)
     } catch (error: any) {
         logger.error('Generate cover letter error:', error);
         res.status(500).json({ error: 'Failed to generate cover letter' });
+    }
+}
+
+export async function generateSEOArticleController(req: Request, res: Response) {
+    try {
+        const userId = req.userId!;
+        const input: SEOArticleInput = req.body;
+
+        if (!input.keyword || typeof input.keyword !== 'string' || input.keyword.trim() === '') {
+            return res.status(400).json({ error: 'keyword is required' });
+        }
+
+        // Check credits
+        const hasCredits = await checkAndDeductCredits(userId);
+        if (!hasCredits) {
+            return res.status(402).json({
+                error: 'No credits remaining',
+                message: 'Upgrade to Pro for unlimited generations',
+            });
+        }
+
+        // Generate SEO article
+        const result = await generateSEOArticle(input);
+
+        // Save to history
+        await prisma.generation.create({
+            data: {
+                userId,
+                type: 'SEO_ARTICLE',
+                input: JSON.stringify(input),
+                output: JSON.stringify(result),
+            },
+        });
+
+        res.json(result);
+    } catch (error: any) {
+        logger.error('Generate SEO article error:', error);
+        res.status(500).json({ error: 'Failed to generate SEO article' });
     }
 }
 
