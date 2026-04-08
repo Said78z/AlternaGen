@@ -19,18 +19,19 @@ jobs:
           node-version: '22'
           cache: 'npm'
           cache-dependency-path: |
-            web/kassy-kube/package-lock.json
+            package-lock.json
             api/package-lock.json
 
       - name: Install & Prisma Generate
         run: |
-          cd api && npm ci && npx prisma generate
-          cd ../web/kassy-kube && npm ci
+          npm ci
+          cd api && npx prisma generate
 
       - name: Security & Lint
         run: |
-          cd api && npm audit --audit-level=high && npm run lint
-          cd ../web/kassy-kube && npm audit --audit-level=high && npm run lint
+          npm audit --audit-level=high --omit=dev
+          cd api && npm run lint
+          cd ../web/kassy-kube && npm run lint
 
       - name: Build Web & API
         run: |

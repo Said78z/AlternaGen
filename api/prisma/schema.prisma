@@ -34,6 +34,7 @@ model User {
   applications Application[]
   agentTasks   AgentTask[]
   generations  Generation[]
+  smmqAgency   SmmqAgency?
 
   @@map("users")
 }
@@ -235,4 +236,98 @@ model StripeWebhookEvent {
   createdAt DateTime @default(now()) @map("created_at")
   
   @@map("stripe_webhook_events")
+}
+
+// ============================================
+// 6. SMMA CONTENT MODULE
+// ============================================
+
+model SmmqAgency {
+  id              String   @id @default(uuid())
+  userId          String   @unique @map("user_id")
+  agencyName      String   @map("agency_name")
+  niche           String
+  targetAudience  String   @map("target_audience")
+  contentGoals    String   @map("content_goals")
+  toneOfVoice     String   @map("tone_of_voice")
+  competitors     String?
+  uniqueValue     String?  @map("unique_value")
+  language        String   @default("fr")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contentItems ContentItem[]
+
+  @@map("smmq_agencies")
+}
+
+enum ContentStatus {
+  DRAFT
+  READY
+  POSTED
+}
+
+enum ContentChannel {
+  TIKTOK
+  REELS
+}
+
+model ContentItem {
+  id             String         @id @default(uuid())
+  agencyId       String         @map("agency_id")
+  title          String
+  channel        ContentChannel
+  hook           String         @db.Text
+  script         String         @db.Text
+  cta            String
+  onScreenText   String?        @map("on_screen_text") @db.Text
+  beats          String?        @db.Text
+  hashtags       String[]
+  status         ContentStatus  @default(DRAFT)
+  parentId       String?        @map("parent_id")
+  createdAt      DateTime       @default(now()) @map("created_at")
+  updatedAt      DateTime       @updatedAt @map("updated_at")
+
+  agency         SmmqAgency      @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  parent         ContentItem?    @relation("ContentVariants", fields: [parentId], references: [id])
+  variants       ContentItem[]   @relation("ContentVariants")
+  calendarEvents CalendarEvent[]
+  metrics        ContentMetrics?
+
+  @@index([agencyId, status])
+  @@map("content_items")
+}
+
+model CalendarEvent {
+  id            String   @id @default(uuid())
+  contentItemId String   @map("content_item_id")
+  scheduledAt   DateTime @map("scheduled_at")
+  channel       String
+  notes         String?  @db.Text
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  contentItem ContentItem @relation(fields: [contentItemId], references: [id], onDelete: Cascade)
+
+  @@index([scheduledAt])
+  @@map("calendar_events")
+}
+
+model ContentMetrics {
+  id            String   @id @default(uuid())
+  contentItemId String   @unique @map("content_item_id")
+  views         Int      @default(0)
+  likes         Int      @default(0)
+  comments      Int      @default(0)
+  shares        Int      @default(0)
+  clicks        Int      @default(0)
+  leads         Int      @default(0)
+  revenue       Float?
+  recordedAt    DateTime @default(now()) @map("recorded_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  contentItem ContentItem @relation(fields: [contentItemId], references: [id], onDelete: Cascade)
+
+  @@map("content_metrics")
 }
